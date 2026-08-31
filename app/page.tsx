@@ -59,7 +59,7 @@ const MANAGER_NAV = [
 
 /* ---------------------------------- HELPER ---------------------------------- */
 
-function formatEventDate(dateStr) {
+function formatEventDate(dateStr: string): { day: string; month: string } {
   const d = new Date(dateStr + "T00:00:00");
   return { day: String(d.getDate()).padStart(2, "0"), month: MONTHS[d.getMonth()] };
 }
@@ -77,10 +77,10 @@ function BrandLogo() {
   );
 }
 
-function RoleSwitch({ role, setRole }) {
+function RoleSwitch({ role, setRole }: { role: string; setRole: (r: string) => void }) {
   return (
     <div className="flex gap-1.5 rounded-2xl bg-gradient-to-b from-white/80 to-amber-50/60 p-1.5 shadow-[0_12px_24px_rgba(120,84,31,0.08)] ring-1 ring-amber-100/80 backdrop-blur dark:from-transparent dark:to-transparent dark:shadow-none dark:ring-0">
-      {["player", "manager"].map((r) => (
+      {["player", "manager"].map((r: string) => (
         <button
           key={r}
           type="button"
@@ -99,7 +99,7 @@ function RoleSwitch({ role, setRole }) {
   );
 }
 
-function RatingBadge({ rating }) {
+function RatingBadge({ rating }: { rating: number }) {
   return (
     <Badge
       variant="secondary"
@@ -112,7 +112,7 @@ function RatingBadge({ rating }) {
   );
 }
 
-function FilterChip({ label, icon: Icon, active, onClick }) {
+function FilterChip({ label, icon: Icon, active, onClick }: { label: string; icon?: any; active: boolean; onClick: () => void }) {
   return (
     <Button
       type="button"
@@ -131,7 +131,7 @@ function FilterChip({ label, icon: Icon, active, onClick }) {
   );
 }
 
-function VenueCard({ venue, onOpen }) {
+function VenueCard({ venue, onOpen }: { venue: any; onOpen: (v: any) => void }) {
   const spine = SPINE_COLORS[venue.id % SPINE_COLORS.length];
   return (
     <Card className="group overflow-hidden border border-border/60 bg-card/90 backdrop-blur p-0 transition-all duration-300 shadow-[0_8px_24px_rgba(120,113,108,0.08)] hover:border-amber-400/50 hover:shadow-[0_16px_36px_rgba(245,158,11,0.12)] active:border-amber-400/60 dark:shadow-none">
@@ -147,7 +147,7 @@ function VenueCard({ venue, onOpen }) {
               <RatingBadge rating={venue.rating} />
             </div>
             <div className="mt-3 flex flex-wrap gap-1.5">
-              {venue.tags.map((t) => (
+              {venue.tags.map((t: string) => (
                 <Badge key={t} variant="secondary" className="h-6 rounded-full border border-amber-200/80 bg-amber-50/90 px-2 text-[10px] text-amber-900 shadow-sm shadow-amber-200/40 dark:border-amber-400/40 dark:bg-amber-400/10 dark:text-amber-300 dark:shadow-none">{t}</Badge>
               ))}
             </div>
@@ -170,16 +170,16 @@ function VenueCard({ venue, onOpen }) {
   );
 }
 
-function VenueDetailModal({ venue, events, onClose, onBook, booked }) {
+function VenueDetailModal({ venue, events, onClose, onBook, booked }: { venue: any; events: any[]; onClose: () => void; onBook: () => void; booked: boolean }) {
   if (!venue) return null;
   const spine = SPINE_COLORS[venue.id % SPINE_COLORS.length];
-  const venueEvents = events.filter((e) => e.venueId === venue.id);
-  const venuePosts = MATCH_POSTS.filter((p) => p.venueName === venue.name);
+  const venueEvents = events.filter((e: any) => e.venueId === venue.id);
+  const venuePosts = MATCH_POSTS.filter((p: any) => p.venueName === venue.name);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-[6px] sm:p-6 md:p-8" onClick={onClose}>
       <div
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e: React.MouseEvent) => e.stopPropagation()}
         className="max-h-[92vh] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-[28px] border border-border/60 bg-card/95 shadow-[0_30px_80px_rgba(50,32,16,0.24)] ring-1 ring-border/40 transition-all duration-300 ease-out sm:w-[min(92vw,32rem)] md:max-w-xl"
       >
         <div className="h-3 bg-gradient-to-r" style={{ backgroundImage: `linear-gradient(to right, ${spine}, ${spine}cc)` }} />
@@ -208,7 +208,7 @@ function VenueDetailModal({ venue, events, onClose, onBook, booked }) {
           </div>
 
           <div className="mt-4 flex flex-wrap gap-1.5">
-            {venue.tags.map((t) => (
+            {venue.tags.map((t: string) => (
               <Badge key={t} variant="secondary" className="h-6 rounded-full border border-amber-200/80 bg-amber-50/90 px-2 text-[10px] text-amber-900 shadow-sm shadow-amber-200/40 dark:border-amber-400/40 dark:bg-amber-400/10 dark:text-amber-300 dark:shadow-none">{t}</Badge>
             ))}
           </div>
@@ -219,7 +219,7 @@ function VenueDetailModal({ venue, events, onClose, onBook, booked }) {
             <div className="mt-6">
               <h4 className="ff-display mb-2.5 text-sm font-semibold text-foreground">Prossimi eventi</h4>
               <div className="flex flex-col gap-2">
-                {venueEvents.map((ev) => {
+                {venueEvents.map((ev: any) => {
                   const d = formatEventDate(ev.date);
                   return (
                     <div key={ev.id} className="flex items-center gap-3 rounded-2xl border border-border/40 bg-card p-2.5 dark:border-border/50 dark:bg-muted/40">
@@ -247,7 +247,7 @@ function VenueDetailModal({ venue, events, onClose, onBook, booked }) {
             </div>
             {venuePosts.length > 0 ? (
               <div className="flex flex-col gap-2">
-                {venuePosts.map((p) => (
+                {venuePosts.map((p: any) => (
                   <div key={p.id} className="flex items-center justify-between gap-3 rounded-2xl border border-border/40 bg-card p-2.5 dark:border-border/50 dark:bg-muted/40">
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-foreground">{p.game} · cercano {p.seeking}</p>
@@ -290,14 +290,14 @@ export default function App() {
   const [requests, setRequests] = useState(INITIAL_REQUESTS);
 
   const [search, setSearch] = useState("");
-  const [activeGenres, setActiveGenres] = useState([]);
+  const [activeGenres, setActiveGenres] = useState<string[]>([]);
   const [onlyOpen, setOnlyOpen] = useState(false);
   const [onlyFree, setOnlyFree] = useState(false);
 
-  const [selectedVenue, setSelectedVenue] = useState(null);
-  const [bookedVenueId, setBookedVenueId] = useState(null);
+  const [selectedVenue, setSelectedVenue] = useState<any>(null);
+  const [bookedVenueId, setBookedVenueId] = useState<number | null>(null);
 
-  const managedVenue = venues.find((v) => v.id === 1);
+  const managedVenue = venues.find((v) => v.id === 1)!;
   const [venueForm, setVenueForm] = useState({ ...managedVenue });
   const [saveMessage, setSaveMessage] = useState("");
 
@@ -308,11 +308,11 @@ export default function App() {
   const activeTab = role === "player" ? playerTab : managerTab;
   const setActiveTab = role === "player" ? setPlayerTab : setManagerTab;
 
-  function toggleGenre(g) {
+  function toggleGenre(g: string) {
     setActiveGenres((prev) => (prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g]));
   }
 
-  function openVenue(v) {
+  function openVenue(v: any) {
     setSelectedVenue(v);
     document.body.style.overflow = "hidden";
   }
@@ -333,7 +333,7 @@ export default function App() {
     }
   }
 
-  function updateRequestStatus(id, status) {
+  function updateRequestStatus(id: number, status: string) {
     setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
   }
 
@@ -343,10 +343,10 @@ export default function App() {
     setTimeout(() => setSaveMessage(""), 2500);
   }
 
-  function toggleFormTag(g) {
+  function toggleFormTag(g: string) {
     setVenueForm((prev) => ({
       ...prev,
-      tags: prev.tags.includes(g) ? prev.tags.filter((t) => t !== g) : [...prev.tags, g],
+      tags: (prev.tags || []).includes(g) ? prev.tags!.filter((t) => t !== g) : [...(prev.tags || []), g],
     }));
   }
 
@@ -360,7 +360,7 @@ export default function App() {
     setShowEventForm(false);
   }
 
-  function deleteEvent(id) {
+  function deleteEvent(id: number) {
     setEvents((prev) => prev.filter((e) => e.id !== id));
   }
 
@@ -680,7 +680,7 @@ export default function App() {
             <select className="h-9 w-full rounded-xl border border-input bg-input/30 px-3 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50" value={newEvent.genre} onChange={(e) => setNewEvent({ ...newEvent, genre: e.target.value })}>
               {GENRES.map((g) => <option key={g} value={g}>{g}</option>)}
             </select>
-            <Input type="number" placeholder="Posti totali" value={newEvent.seatsTotal} onChange={(e) => setNewEvent({ ...newEvent, seatsTotal: e.target.value })} />
+            <Input type="number" placeholder="Posti totali" value={newEvent.seatsTotal} onChange={(e) => setNewEvent({ ...newEvent, seatsTotal: Number(e.target.value) })} />
             <div className="md:col-span-2 flex gap-2">
               <Button onClick={addEvent} className="rounded-xl bg-amber-400 text-slate-950 hover:bg-amber-300">Salva evento</Button>
               <Button variant="outline" onClick={() => setShowEventForm(false)} className="rounded-xl">Annulla</Button>
@@ -712,12 +712,12 @@ export default function App() {
   }
 
   function renderPrenotazioni() {
-    const statusStyle = {
+    const statusStyle: Record<string, string> = {
       pending: "bg-amber-400/10 text-amber-300 border-amber-400/30",
       accepted: "bg-emerald-500/10 text-emerald-300 border-emerald-500/30",
       declined: "bg-rose-500/10 text-rose-300 border-rose-500/30",
     };
-    const statusLabel = { pending: "In attesa", accepted: "Accettata", declined: "Rifiutata" };
+    const statusLabel: Record<string, string> = { pending: "In attesa", accepted: "Accettata", declined: "Rifiutata" };
     return (
       <div className="flex flex-col gap-5">
         <h1 className="ff-display text-2xl md:text-3xl font-bold text-foreground">Richieste di prenotazione</h1>
