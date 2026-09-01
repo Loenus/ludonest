@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Mail, MapPin } from "lucide-react";
+import { Mail } from "lucide-react";
 
 import { BrandLogo } from "@/components/brand-logo";
 
@@ -52,55 +52,66 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   },
 ];
 
+const FLAT_LINKS = COLUMNS.flatMap((c) => c.links);
+
 export function SiteFooter() {
   return (
     <footer className="border-t border-border/50 bg-background/60 backdrop-blur">
-      <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr]">
+      <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+        <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:items-start sm:justify-between sm:text-left">
           {/* Brand + contact */}
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col items-center gap-2.5 sm:items-start">
             <BrandLogo />
             <p className="max-w-xs text-sm text-muted-foreground">
               Trova il tavolo. Trova la partita. Trova la tua gente.
             </p>
-            <div className="mt-0.5 flex flex-col gap-1.5 text-sm text-muted-foreground">
-              <a
-                href={`mailto:${CONTACT_EMAIL}`}
-                className="inline-flex items-center gap-2 transition-colors hover:text-foreground"
-              >
-                <Mail size={14} className="text-amber-500" />
-                {CONTACT_EMAIL}
-              </a>
-              <span className="inline-flex items-center gap-2">
-                <MapPin size={14} className="text-amber-500" />
-                Roma, Italia
-              </span>
-            </div>
+            <a
+              href={`mailto:${CONTACT_EMAIL}`}
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <Mail size={14} className="text-amber-500" />
+              {CONTACT_EMAIL}
+            </a>
           </div>
 
-          {/* Link columns */}
-          {COLUMNS.map((col) => (
-            <nav key={col.title} className="flex flex-col gap-2.5">
-              <p className="text-xs font-semibold uppercase tracking-wide text-foreground">
-                {col.title}
-              </p>
-              <ul className="flex flex-col gap-2">
-                {col.links.map((link) => (
-                  <li key={link.label}>
-                    <Link
-                      href={link.href}
-                      className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          ))}
+          {/* Link columns — sm and up */}
+          <div className="hidden gap-12 sm:flex lg:gap-16">
+            {COLUMNS.map((col) => (
+              <nav key={col.title} className="flex flex-col gap-2.5">
+                <p className="text-xs font-semibold uppercase tracking-wide text-foreground">
+                  {col.title}
+                </p>
+                <ul className="flex flex-col gap-2">
+                  {col.links.map((link) => (
+                    <li key={link.label}>
+                      <Link
+                        href={link.href}
+                        className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            ))}
+          </div>
         </div>
 
-        <div className="mt-8 flex flex-col-reverse items-start justify-between gap-3 border-t border-border/50 pt-5 sm:flex-row sm:items-center">
+        {/* Flat link row — mobile only */}
+        <nav className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2 sm:hidden">
+          {FLAT_LINKS.map((link) => (
+            <Link
+              key={link.label}
+              href={link.href}
+              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="mt-6 flex flex-col items-center gap-3 border-t border-border/50 pt-5 text-center sm:mt-8 sm:flex-row sm:justify-between sm:text-left">
           <p className="text-xs text-muted-foreground/70">
             © {new Date().getFullYear()} LudoNest · Prototipo v0.1 · Roma
           </p>
