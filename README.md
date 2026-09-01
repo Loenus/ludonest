@@ -1,3 +1,20 @@
+Roadmap
+
+[ ] ideazione database
+[ ] connessione a Supabase/Firebase
+[X] refactoring codice
+[ ] login
+
+
+
+sono tutti utenti.
+tutti gli utenti possono proporre di amministrare UN solo ludopub.
+(ci sono poi superadmin, tipo me e basta, che pososno fare tutto, tra cui accettare le proposte di creazione di ludopub)
+se un utente amministra un ludopub, allora può accedere a tutte le info dettagliate del ludopub e può creare eventi e modificarne le informazioni. insomma può amministrarlo.
+un utente normale (o comunque, un utente che non amministra quel ludopub) può prenotare un tavolo a quel ludopub.
+
+---
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started

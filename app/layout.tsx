@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TAVOLO - Ludopub Manager",
+  title: "LudoNest",
   description: "Trova ludopub vicino a te, prenota tavoli e gestisci il tuo locale",
 };
 
