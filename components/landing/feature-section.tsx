@@ -68,7 +68,7 @@ export function FeatureSection() {
       </div>
 
       <p className="mt-10 text-center text-xs text-muted-foreground">
-        In arrivo a Milano · presto in tutta Italia
+        In arrivo a Roma · presto in tutta Italia
       </p>
     </section>
   );

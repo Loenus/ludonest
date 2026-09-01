@@ -13,7 +13,7 @@ const PERKS = [
 
 export function PartnerCta() {
   return (
-    <section className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
+    <section className="mx-auto w-full max-w-6xl px-4 pb-16 pt-4 sm:px-6 sm:pb-20 sm:pt-6">
       {/* NB: no `overflow`/`backdrop` clip on this card or any ancestor — it holds
           a 3D die and iOS would flatten it. Radius + shadow only. */}
       <div className="relative rounded-[2rem] border border-amber-400/30 bg-[linear-gradient(135deg,rgba(245,158,11,0.14)_0%,var(--card)_55%)] p-8 shadow-[0_28px_70px_rgba(120,84,31,0.16)] sm:p-12 dark:shadow-none">
