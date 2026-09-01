@@ -14,7 +14,7 @@ export function BrandLogo({ className, size = "sm" }: BrandLogoProps) {
     <div className={cn("flex items-center", md ? "gap-3" : "gap-2.5", className)}>
       <div
         className={cn(
-          "flex items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-amber-500 shadow-lg shadow-amber-400/30",
+          "relative flex items-center justify-center rounded-2xl bg-gradient-to-br from-amber-300 via-amber-400 to-orange-500 shadow-lg shadow-amber-400/30 ring-1 ring-white/40",
           md ? "h-11 w-11" : "h-9 w-9",
         )}
       >
@@ -26,7 +26,10 @@ export function BrandLogo({ className, size = "sm" }: BrandLogoProps) {
           md ? "text-xl" : "text-lg",
         )}
       >
-        TAVOLO
+        Ludo
+        <span className="bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">
+          Nest
+        </span>
       </span>
     </div>
   );

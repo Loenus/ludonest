@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { AuthForm } from "@/components/auth-form";
 
 export const metadata: Metadata = {
-  title: "Accedi come gestore · TAVOLO",
+  title: "Accedi come gestore · LudoNest",
 };
 
 export default function ManagerLoginPage() {

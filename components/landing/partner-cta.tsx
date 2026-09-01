@@ -14,7 +14,9 @@ const PERKS = [
 export function PartnerCta() {
   return (
     <section className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
-      <div className="relative rounded-3xl border border-amber-400/30 bg-[linear-gradient(135deg,rgba(245,158,11,0.12)_0%,var(--card)_55%)] p-8 shadow-[0_24px_60px_rgba(120,84,31,0.14)] sm:p-12 dark:shadow-none">
+      {/* NB: no `overflow`/`backdrop` clip on this card or any ancestor — it holds
+          a 3D die and iOS would flatten it. Radius + shadow only. */}
+      <div className="relative rounded-[2rem] border border-amber-400/30 bg-[linear-gradient(135deg,rgba(245,158,11,0.14)_0%,var(--card)_55%)] p-8 shadow-[0_28px_70px_rgba(120,84,31,0.16)] sm:p-12 dark:shadow-none">
         {/* decorative die — kept fully inside the card: no `overflow`/`backdrop`
             clip is allowed on an ancestor of a 3D die or iOS flattens it */}
         <div
@@ -25,7 +27,7 @@ export function PartnerCta() {
         </div>
 
         <div className="max-w-xl">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-1 text-[11px] font-semibold text-amber-700 dark:text-amber-300">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300">
             <Store size={12} /> Per i gestori
           </span>
 
@@ -33,7 +35,7 @@ export function PartnerCta() {
             Hai un ludopub o uno spazio dove si gioca?
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
-            Diventa partner di TAVOLO: fatti trovare dai giocatori della tua città,
+            Diventa partner di LudoNest: fatti trovare dai giocatori della tua città,
             riempi i tavoli nelle serate vuote e gestisci prenotazioni ed eventi da
             un&apos;unica dashboard.
           </p>

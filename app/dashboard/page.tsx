@@ -5,7 +5,7 @@ import { requireRole } from "@/lib/auth";
 import { ManagerExperience } from "./manager-experience";
 
 export const metadata: Metadata = {
-  title: "Dashboard gestore · TAVOLO",
+  title: "Dashboard gestore · LudoNest",
 };
 
 export default async function DashboardPage() {

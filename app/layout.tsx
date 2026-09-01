@@ -17,8 +17,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LudoNest",
-  description: "Trova ludopub vicino a te, prenota tavoli e gestisci il tuo locale",
+  title: "LudoNest — Trova il tavolo. Trova la partita. Trova la tua gente.",
+  description:
+    "Prenota il tuo tavolo al ludopub più vicino, unisciti a tornei ed eventi e trova persone con cui giocare. Tutto in un'app.",
 };
 
 export const generateViewport = () => ({

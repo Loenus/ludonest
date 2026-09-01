@@ -5,7 +5,7 @@ import { requireRole } from "@/lib/auth";
 import { PlayerExperience } from "./player-experience";
 
 export const metadata: Metadata = {
-  title: "La tua area · TAVOLO",
+  title: "La tua area · LudoNest",
 };
 
 export default async function PlayerPage() {

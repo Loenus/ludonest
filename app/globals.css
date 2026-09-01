@@ -334,6 +334,23 @@ html:not(.dark) body {
     linear-gradient(to bottom, rgba(251, 191, 36, 0.06) 1px, transparent 1px);
 }
 
+/* tabletop map lattice (triangular grid) — thematic backdrop for the hero */
+.landing-hex {
+  --hex: rgba(180, 120, 40, 0.08);
+  background-color: transparent;
+  background-image:
+    linear-gradient(150deg, var(--hex) 1px, transparent 1px),
+    linear-gradient(30deg, var(--hex) 1px, transparent 1px),
+    linear-gradient(90deg, var(--hex) 1px, transparent 1px);
+  background-size: 44px 76px;
+  background-position: 0 0;
+  mask-image: radial-gradient(ellipse 78% 62% at 50% 0%, #000 18%, transparent 78%);
+}
+
+.dark .landing-hex {
+  --hex: rgba(251, 191, 36, 0.05);
+}
+
 /* ------------------------------------------------------------------ */
 /*  3D dice ("chicca") — real CSS cube, drag to spin                   */
 /* ------------------------------------------------------------------ */
@@ -538,8 +555,109 @@ html:not(.dark) body {
     inset 0 1px 2px rgba(255, 255, 255, 0.55);
 }
 
+/* ------------------------------------------------------------------ */
+/*  Landing: premium accents                                           */
+/* ------------------------------------------------------------------ */
+
+/* slow sheen sweeping across the gradient headline word */
+.shimmer-text {
+  background-size: 220% 100%;
+  animation: shimmer-text 6s ease-in-out infinite;
+}
+
+@keyframes shimmer-text {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* light glint that travels across the primary CTA */
+.shimmer-cta {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.shimmer-cta::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 70%
+  );
+  transform: translateX(-100%);
+  animation: shimmer-cta 4.5s ease-in-out infinite;
+  animation-delay: 1.2s;
+  pointer-events: none;
+}
+
+@keyframes shimmer-cta {
+  0%, 60%, 100% { transform: translateX(-120%); }
+  80% { transform: translateX(120%); }
+}
+
+/* rotating noun in the hero motto: "Trova [il tavolo / la partita / la tua gente]" */
+.word-roll {
+  display: inline-grid;
+  height: 1.25em;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+
+.word-roll > span {
+  grid-area: 1 / 1;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(70%);
+  animation: word-roll 7.5s cubic-bezier(0.6, 0, 0.2, 1) infinite;
+}
+
+.word-roll > span:nth-child(2) { animation-delay: 2.5s; }
+.word-roll > span:nth-child(3) { animation-delay: 5s; }
+
+@keyframes word-roll {
+  0%      { opacity: 0; transform: translateY(70%); }
+  4%, 28% { opacity: 1; transform: translateY(0); }
+  33%, 100% { opacity: 0; transform: translateY(-70%); }
+}
+
+/* infinite ribbon of game titles */
+.marquee-mask {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+
+.marquee-track {
+  animation: marquee 46s linear infinite;
+}
+
+.marquee-mask:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-float-y,
   .animate-float-y-slow,
   .animate-float-y-delay { animation: none; }
+  .shimmer-text { animation: none; }
+  .shimmer-cta::after { animation: none; opacity: 0; }
+  .marquee-track { animation: none; }
+  .word-roll {
+    height: auto;
+    overflow: visible;
+  }
+  .word-roll > span {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .word-roll > span:nth-child(n + 2) { display: none; }
 }
