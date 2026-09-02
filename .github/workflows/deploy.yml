@@ -1,0 +1,62 @@
+name: Deploy
+
+# Replaces the Vercel Git integration: every push to `main` applies pending
+# Supabase migrations, then builds the app with OpenNext and deploys the Worker
+# to Cloudflare. Manual runs are allowed via the "Run workflow" button.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    name: Supabase migrations
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      # `db push` records applied migrations in `supabase_migrations.schema_migrations`
+      # on the remote DB, so re-runs with nothing new are a no-op.
+      # SUPABASE_DB_URL = the *Session pooler* URI from the Supabase dashboard
+      # (Connect > Session pooler, port 5432), password percent-encoded.
+      - name: Push migrations to the hosted database
+        run: supabase db push --db-url "$SUPABASE_DB_URL" --include-all
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+
+  deploy:
+    name: Build & deploy Worker
+    needs: migrate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+
+      # `next build` inlines NEXT_PUBLIC_* into the client bundle, so they must be
+      # present here. Server-only secrets (service role key) are Worker secrets,
+      # set once with `wrangler secret put` — not needed at build time.
+      - name: Build (OpenNext) and deploy (Wrangler)
+        run: |
+          npx opennextjs-cloudflare build
+          npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}

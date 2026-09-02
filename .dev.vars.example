@@ -1,0 +1,13 @@
+# Local env for `npm run preview` (the Cloudflare Workers runtime).
+# `next dev` keeps using .env.local — this file is only read by Wrangler.
+# Copy to `.dev.vars` and fill in with the same values as .env.local.
+# `.dev.vars` is gitignored — never commit real keys.
+
+NEXTJS_ENV=development
+
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR-PROJECT-REF.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+# Canonical site URL for OAuth redirects (use http://localhost:8788 for preview).
+# NEXT_PUBLIC_SITE_URL=http://localhost:8788

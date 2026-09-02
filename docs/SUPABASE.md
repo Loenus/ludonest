@@ -25,11 +25,14 @@ SUPABASE_SERVICE_ROLE_KEY=<service_role key>   # server only — never NEXT_PUBL
 
 **SQL editor** (Dashboard → SQL) — run in order:
 
-1. paste and run `supabase/migrations/0001_init.sql`
+1. paste and run `supabase/migrations/20250101000000_init.sql`
 2. paste and run `supabase/seed.sql` (6 demo venues; safe to re-run)
 
 Or with the CLI linked to the project: `supabase db push` then
 `psql "$DATABASE_URL" -f supabase/seed.sql`.
+
+For the **hosted** production database this runs automatically from GitHub
+Actions on every push to `main` — see [`DEPLOY-CLOUDFLARE.md`](./DEPLOY-CLOUDFLARE.md).
 
 ## 4. Auth configuration
 

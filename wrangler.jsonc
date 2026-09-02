@@ -1,0 +1,21 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ludonest",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-09-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  }
+  // Runtime env:
+  //   - NEXT_PUBLIC_* are inlined at `next build` time (set them in CI), so they
+  //     do NOT need to be listed here.
+  //   - SUPABASE_SERVICE_ROLE_KEY is a secret -> set it once with
+  //     `npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY` (or in the dashboard:
+  //     Workers & Pages > ludonest > Settings > Variables and Secrets).
+  //   - Non-secret runtime values can go in a "vars": { ... } block here.
+}
