@@ -1,44 +1,45 @@
-import { Building2, CheckCircle2, ClipboardList, Dice6, TrendingUp, XCircle } from "lucide-react";
+import { Building2, ClipboardList, Dice6, TrendingUp } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
-import type { BookingRequest, GameEvent, RequestStatus, Venue } from "@/lib/types";
+import { formatBookingWhen } from "@/lib/format";
+import type { Booking, Venue } from "@/lib/types";
 
 interface OverviewViewProps {
   venue: Venue;
+  bookings: Booking[];
   pendingCount: number;
-  upcomingEvents: GameEvent[];
-  pendingRequests: BookingRequest[];
-  onUpdateRequestStatus: (id: number, status: RequestStatus) => void;
   onGoToTab: (tab: string) => void;
 }
 
-export function OverviewView({
-  venue,
-  pendingCount,
-  upcomingEvents,
-  pendingRequests,
-  onUpdateRequestStatus,
-  onGoToTab,
-}: OverviewViewProps) {
+export function OverviewView({ venue, bookings, pendingCount, onGoToTab }: OverviewViewProps) {
+  const pending = bookings
+    .filter((b) => b.status === "pending")
+    .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+
+  const acceptedUpcoming = bookings.filter((b) => b.status === "accepted").length;
+
   const stats: { label: string; value: string; icon: LucideIcon }[] = [
-    { label: "Visite oggi", value: "47", icon: TrendingUp },
     { label: "Richieste in attesa", value: String(pendingCount), icon: ClipboardList },
+    { label: "Confermate in programma", value: String(acceptedUpcoming), icon: TrendingUp },
+    { label: "Tavoli del locale", value: String(venue.totalTables), icon: Building2 },
     {
-      label: "Tavoli occupati",
-      value: `${venue.totalTables - venue.freeTables}/${venue.totalTables}`,
-      icon: Building2,
+      label: "Valutazione",
+      value: venue.rating == null ? "—" : `${venue.rating.toFixed(1)}/6`,
+      icon: Dice6,
     },
-    { label: "Valutazione media", value: `${venue.rating.toFixed(1)}/6`, icon: Dice6 },
   ];
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 sm:gap-6">
-      <h1 className="ff-display text-2xl font-bold text-foreground sm:text-3xl md:text-4xl">
-        Dashboard
-      </h1>
+      <div>
+        <h1 className="ff-display text-2xl font-bold text-foreground sm:text-3xl md:text-4xl">
+          Dashboard
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">{venue.name} · {venue.city}</p>
+      </div>
 
-      <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+      <div className="grid w-full grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {stats.map((s) => (
           <Card
             key={s.label}
@@ -53,76 +54,34 @@ export function OverviewView({
 
       <Card className="w-full border border-border/60 bg-card/80 p-4 backdrop-blur sm:p-5">
         <div className="mb-3 flex items-center justify-between gap-2">
-          <h4 className="ff-display truncate text-xs font-semibold text-foreground sm:text-sm">
-            Prossimi eventi
-          </h4>
-          <button
-            onClick={() => onGoToTab("eventi")}
-            className="shrink-0 text-xs text-amber-400"
-          >
-            Vedi
-          </button>
-        </div>
-        {upcomingEvents.slice(0, 2).map((ev) => (
-          <div
-            key={ev.id}
-            className="flex items-center justify-between gap-2 border-t border-border py-2 text-xs first:border-t-0 sm:text-sm"
-          >
-            <span className="truncate text-foreground">{ev.title}</span>
-            <span className="shrink-0 font-mono text-[10px] text-muted-foreground sm:text-xs">
-              {ev.date}
-            </span>
-          </div>
-        ))}
-        {upcomingEvents.length === 0 && (
-          <p className="pt-2 text-xs text-muted-foreground">Nessun evento in programma.</p>
-        )}
-      </Card>
-
-      <Card className="w-full border border-border/60 bg-card/80 p-4 backdrop-blur sm:p-5">
-        <div className="mb-3 flex items-center justify-between gap-2">
-          <h4 className="ff-display truncate text-xs font-semibold text-foreground sm:text-sm">
-            Richieste recenti
+          <h4 className="ff-display text-xs font-semibold text-foreground sm:text-sm">
+            Richieste da confermare
           </h4>
           <button
             onClick={() => onGoToTab("prenotazioni")}
-            className="shrink-0 text-xs text-amber-400"
+            className="shrink-0 text-xs text-amber-500 dark:text-amber-400"
           >
-            Vedi
+            Gestisci
           </button>
         </div>
-        {pendingRequests.slice(0, 2).map((r) => (
+        {pending.slice(0, 4).map((b) => (
           <div
-            key={r.id}
-            className="flex flex-col gap-2 border-t border-border py-2 first:border-t-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:py-3"
+            key={b.id}
+            className="flex items-center justify-between gap-3 border-t border-border py-2.5 text-xs first:border-t-0 sm:text-sm"
           >
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs text-foreground sm:text-sm">{r.userName}</p>
-              <p className="mt-0.5 font-mono text-[10px] text-muted-foreground sm:text-xs">
-                {r.date} · {r.time} · {r.people}
-              </p>
-            </div>
-            <div className="flex shrink-0 gap-1.5">
-              <button
-                onClick={() => onUpdateRequestStatus(r.id, "accepted")}
-                className="rounded-full bg-muted p-1.5"
-                aria-label="Accetta richiesta"
-              >
-                <CheckCircle2 size={14} className="text-emerald-400" />
-              </button>
-              <button
-                onClick={() => onUpdateRequestStatus(r.id, "declined")}
-                className="rounded-full bg-muted p-1.5"
-                aria-label="Rifiuta richiesta"
-              >
-                <XCircle size={14} className="text-rose-400" />
-              </button>
-            </div>
+            <span className="truncate text-foreground">{b.playerName}</span>
+            <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
+              {formatBookingWhen(b.startsAt)} · {b.partySize} pers.
+            </span>
           </div>
         ))}
-        {pendingCount === 0 && (
-          <p className="pt-2 text-xs text-muted-foreground">Nessuna richiesta in attesa.</p>
+        {pending.length === 0 && (
+          <p className="pt-1 text-xs text-muted-foreground">Nessuna richiesta in attesa.</p>
         )}
+      </Card>
+
+      <Card className="w-full border border-dashed border-border/60 bg-card/50 p-4 text-xs text-muted-foreground sm:p-5">
+        Gli strumenti per eventi e statistiche del locale arrivano a breve.
       </Card>
     </div>
   );

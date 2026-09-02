@@ -1,78 +1,134 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { z } from "zod";
 
-import {
-  HOME_PATH,
-  SESSION_COOKIE,
-  SESSION_MAX_AGE,
-  encodeSession,
-} from "@/lib/session";
-import type { Role } from "@/lib/types";
+import { createClient } from "@/lib/supabase/server";
+import { CLAIM_PATH, HOME_PATH } from "@/lib/session";
+import type { AppRole } from "@/lib/types";
 
 export interface AuthState {
   error?: string;
+  notice?: string;
 }
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const credentials = z.object({
+  email: z.email({ error: "Inserisci un indirizzo email valido." }),
+  password: z.string().min(8, { error: "La password deve avere almeno 8 caratteri." }),
+});
 
-function displayNameFromEmail(email: string): string {
-  const local = email.split("@")[0] ?? "Ospite";
-  return local
-    .split(/[._-]+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
+const signUpSchema = credentials.extend({
+  fullName: z.string().trim().min(2, { error: "Inserisci il tuo nome." }),
+});
+
+async function siteOrigin(): Promise<string> {
+  const h = await headers();
+  return (
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host") ?? "localhost:3000"}`
+  );
 }
 
-/**
- * Mock authentication. Any well-formed email plus a password of at least four
- * characters is accepted; the role is fixed by which login page called us, so a
- * gamer cannot obtain a manager session (or the reverse) by tampering with the
- * form.
- */
-async function authenticate(
-  role: Role,
+async function homeForCurrentUser(): Promise<string> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return HOME_PATH.player;
+  const { data } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+  return HOME_PATH[(data?.role as AppRole) ?? "player"];
+}
+
+/** Email + password sign-in. `variant` is the page that invoked the action. */
+export async function signIn(
+  _variant: "player" | "manager",
   _prev: AuthState,
   formData: FormData,
 ): Promise<AuthState> {
-  const email = String(formData.get("email") ?? "").trim();
-  const password = String(formData.get("password") ?? "");
-
-  if (!EMAIL_RE.test(email)) {
-    return { error: "Inserisci un indirizzo email valido." };
-  }
-  if (password.length < 4) {
-    return { error: "La password deve avere almeno 4 caratteri." };
+  const parsed = credentials.safeParse({
+    email: String(formData.get("email") ?? "").trim(),
+    password: String(formData.get("password") ?? ""),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Dati non validi." };
   }
 
-  const store = await cookies();
-  store.set(
-    SESSION_COOKIE,
-    encodeSession({ role, email, name: displayNameFromEmail(email) }),
-    {
-      httpOnly: true,
-      sameSite: "lax",
-      path: "/",
-      maxAge: SESSION_MAX_AGE,
-      secure: process.env.NODE_ENV === "production",
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword(parsed.data);
+  if (error) {
+    return { error: "Email o password non corretti." };
+  }
+
+  redirect(await homeForCurrentUser());
+}
+
+/** Email + password registration. Managers are routed to the venue-claim form. */
+export async function signUp(
+  variant: "player" | "manager",
+  _prev: AuthState,
+  formData: FormData,
+): Promise<AuthState> {
+  const parsed = signUpSchema.safeParse({
+    email: String(formData.get("email") ?? "").trim(),
+    password: String(formData.get("password") ?? ""),
+    fullName: String(formData.get("fullName") ?? ""),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Dati non validi." };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signUp({
+    email: parsed.data.email,
+    password: parsed.data.password,
+    options: {
+      data: { full_name: parsed.data.fullName },
+      emailRedirectTo: `${await siteOrigin()}/auth/callback?next=${
+        variant === "manager" ? CLAIM_PATH : HOME_PATH.player
+      }`,
     },
-  );
+  });
 
-  redirect(HOME_PATH[role]);
+  if (error) {
+    return {
+      error:
+        error.message.toLowerCase().includes("already")
+          ? "Esiste già un account con questa email."
+          : "Registrazione non riuscita. Riprova.",
+    };
+  }
+
+  // Email confirmation enabled: no session yet.
+  if (!data.session) {
+    return { notice: "Ti abbiamo inviato una email di conferma. Controlla la posta." };
+  }
+
+  redirect(variant === "manager" ? CLAIM_PATH : HOME_PATH.player);
 }
 
-export async function loginAsGamer(prev: AuthState, formData: FormData) {
-  return authenticate("gamer", prev, formData);
+/** Google OAuth. Client submits a form to this action; we redirect to Google. */
+export async function signInWithGoogle(formData: FormData): Promise<void> {
+  const next = String(formData.get("next") ?? HOME_PATH.player);
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${await siteOrigin()}/auth/callback?next=${encodeURIComponent(next)}`,
+    },
+  });
+
+  if (error || !data.url) redirect("/login?error=oauth");
+  redirect(data.url);
 }
 
-export async function loginAsManager(prev: AuthState, formData: FormData) {
-  return authenticate("manager", prev, formData);
-}
-
-export async function logout() {
-  const store = await cookies();
-  store.delete(SESSION_COOKIE);
+export async function signOut(): Promise<void> {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
   redirect("/");
 }

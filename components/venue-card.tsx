@@ -3,6 +3,7 @@ import { Navigation } from "lucide-react";
 import { RatingBadge } from "@/components/rating-badge";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { hashIndex } from "@/lib/format";
 import { SPINE_COLORS } from "@/lib/mock-data";
 import type { Venue } from "@/lib/types";
 
@@ -12,7 +13,7 @@ interface VenueCardProps {
 }
 
 export function VenueCard({ venue, onOpen }: VenueCardProps) {
-  const spine = SPINE_COLORS[venue.id % SPINE_COLORS.length];
+  const spine = SPINE_COLORS[hashIndex(venue.id, SPINE_COLORS.length)];
   return (
     <Card className="group overflow-hidden border border-border/60 bg-card/90 backdrop-blur p-0 transition-all duration-300 shadow-[0_8px_24px_rgba(120,113,108,0.08)] hover:border-amber-400/50 hover:shadow-[0_16px_36px_rgba(245,158,11,0.12)] active:border-amber-400/60 dark:shadow-none">
       <button onClick={() => onOpen(venue)} className="w-full text-left">
@@ -46,10 +47,12 @@ export function VenueCard({ venue, onOpen }: VenueCardProps) {
             </div>
             <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 border-t border-border pt-2.5">
               <div className="flex items-center gap-2 sm:gap-3 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Navigation size={12} />
-                  <span className="font-mono">{venue.distanceKm} km</span>
-                </span>
+                {venue.distanceKm != null && (
+                  <span className="flex items-center gap-1">
+                    <Navigation size={12} />
+                    <span className="font-mono">{venue.distanceKm} km</span>
+                  </span>
+                )}
                 <span
                   className="flex items-center gap-1.5"
                   style={{ color: venue.openNow ? "var(--teal)" : "var(--coral)" }}
@@ -62,7 +65,9 @@ export function VenueCard({ venue, onOpen }: VenueCardProps) {
                 </span>
               </div>
               <span className="font-mono text-xs text-muted-foreground text-right sm:text-left">
-                {venue.freeTables}/{venue.totalTables} tavoli
+                {venue.freeTables != null
+                  ? `${venue.freeTables}/${venue.totalTables} tavoli`
+                  : `${venue.totalTables} tavoli`}
               </span>
             </div>
           </div>

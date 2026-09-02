@@ -4,12 +4,13 @@ import type { LucideIcon } from "lucide-react";
 /*  Auth                                                               */
 /* ------------------------------------------------------------------ */
 
-export type Role = "gamer" | "manager";
+export type AppRole = "player" | "manager" | "superadmin";
 
 export interface Session {
-  role: Role;
-  name: string;
+  userId: string;
+  role: AppRole;
   email: string;
+  fullName: string;
 }
 
 /* ------------------------------------------------------------------ */
@@ -25,24 +26,34 @@ export type Genre =
   | "Famiglia"
   | "Carte";
 
+export type VenueStatus = "active" | "suspended";
+
+/** UI-facing venue. Sourced from the `venues` table; a few fields are
+ *  presentation-only and derived client-side (Stage 1 has no geolocation or
+ *  live table state). */
 export interface Venue {
-  id: number;
+  id: string;
   name: string;
   city: string;
   address: string;
-  distanceKm: number;
-  rating: number;
-  openNow: boolean;
-  freeTables: number;
+  hours: string;
   totalTables: number;
   tags: string[];
-  hours: string;
   description: string;
+  rating: number | null;
+  status: VenueStatus;
+  ownerId: string | null;
+  /** Derived from `hours`. */
+  openNow: boolean;
+  /** Not tracked yet — undefined until real-time table state exists. */
+  freeTables?: number;
+  /** Not tracked yet — undefined until geolocation exists. */
+  distanceKm?: number;
 }
 
 export interface GameEvent {
   id: number;
-  venueId: number;
+  venueName: string;
   title: string;
   date: string;
   time: string;
@@ -51,15 +62,39 @@ export interface GameEvent {
   seatsTotal: number;
 }
 
-export type RequestStatus = "pending" | "accepted" | "declined";
+export type BookingStatus = "pending" | "accepted" | "declined" | "cancelled";
 
-export interface BookingRequest {
-  id: number;
-  userName: string;
-  date: string;
-  time: string;
-  people: number;
-  status: RequestStatus;
+/** A booking request as shown in the manager dashboard. */
+export interface Booking {
+  id: string;
+  venueId: string;
+  playerId: string;
+  playerName: string;
+  /** ISO timestamp. */
+  startsAt: string;
+  partySize: number;
+  note: string | null;
+  status: BookingStatus;
+  decidedAt: string | null;
+  createdAt: string;
+}
+
+export type ClaimStatus = "pending" | "approved" | "rejected";
+
+export interface VenueClaim {
+  id: string;
+  requesterId: string;
+  requesterName: string;
+  requesterEmail: string | null;
+  name: string;
+  city: string;
+  address: string;
+  hours: string | null;
+  description: string | null;
+  status: ClaimStatus;
+  reviewNote: string | null;
+  reviewedAt: string | null;
+  createdAt: string;
 }
 
 export interface MatchPost {

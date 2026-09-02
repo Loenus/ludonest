@@ -2,7 +2,7 @@ import { Dice6 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 
-export function RatingBadge({ rating }: { rating: number }) {
+export function RatingBadge({ rating }: { rating: number | null }) {
   return (
     <Badge
       variant="secondary"
@@ -10,7 +10,7 @@ export function RatingBadge({ rating }: { rating: number }) {
     >
       <Dice6 size={12} className="text-amber-500 dark:text-amber-400" />
       <span className="font-mono font-bold text-[11px] text-amber-700 dark:text-amber-300">
-        {rating.toFixed(1)}
+        {rating == null ? "—" : rating.toFixed(1)}
       </span>
       <span className="font-mono text-[9px] text-amber-600/80 dark:text-muted-foreground">/6</span>
     </Badge>

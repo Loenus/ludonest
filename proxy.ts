@@ -1,54 +1,40 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-import { HOME_PATH, LOGIN_PATH, SESSION_COOKIE, decodeSession } from "@/lib/session";
+import { updateSession } from "@/lib/supabase/middleware";
+import { LOGIN_PATH } from "@/lib/session";
 
 /**
- * Route protection for the two authenticated areas.
- *
- *  - `/app/*`       is the "gamer" area   -> requires a `gamer` session
- *  - `/dashboard/*` is the "manager" area -> requires a `manager` session
- *
- * A gamer can never reach the manager area and vice versa: mismatched roles are
- * bounced to their own home. Visiting a login page while already authenticated
- * also redirects home, so there is no way to "switch role" from the UI.
+ * Refreshes the Supabase session cookie on every matched request and runs an
+ * **optimistic** auth-presence guard (no DB / role lookup here — this runs on
+ * prefetches too). Role enforcement and "already signed in" redirects live in
+ * the DAL (`lib/auth.ts`), close to the data.
  */
 
-const GAMER_AREA = "/app";
-const MANAGER_AREA = "/dashboard";
-const LOGIN_PAGES = new Set(Object.values(LOGIN_PATH));
+const AREAS = ["/app", "/dashboard", "/admin"];
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const session = decodeSession(request.cookies.get(SESSION_COOKIE)?.value);
+  const { response, user } = await updateSession(request);
 
-  const isGamerArea =
-    pathname === GAMER_AREA || pathname.startsWith(`${GAMER_AREA}/`);
-  const isManagerArea =
-    pathname === MANAGER_AREA || pathname.startsWith(`${MANAGER_AREA}/`);
+  const inArea = AREAS.some((a) => pathname === a || pathname.startsWith(`${a}/`));
+  const needsAuth = inArea || pathname === "/partner/claim";
 
-  if (isGamerArea || isManagerArea) {
-    const requiredRole = isGamerArea ? "gamer" : "manager";
-
-    if (!session) {
-      return NextResponse.redirect(
-        new URL(LOGIN_PATH[requiredRole], request.url),
-      );
-    }
-    if (session.role !== requiredRole) {
-      return NextResponse.redirect(
-        new URL(HOME_PATH[session.role], request.url),
-      );
-    }
+  if (needsAuth && !user) {
+    const loginPath = pathname.startsWith("/dashboard") ? LOGIN_PATH.manager : LOGIN_PATH.player;
+    return NextResponse.redirect(new URL(loginPath, request.url));
   }
 
-  if (session && LOGIN_PAGES.has(pathname)) {
-    return NextResponse.redirect(new URL(HOME_PATH[session.role], request.url));
-  }
-
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {
-  matcher: ["/app/:path*", "/dashboard/:path*", "/login", "/partner/login"],
+  matcher: [
+    "/app/:path*",
+    "/dashboard/:path*",
+    "/admin/:path*",
+    "/partner/login",
+    "/partner/claim",
+    "/login",
+  ],
 };

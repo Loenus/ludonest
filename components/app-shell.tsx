@@ -2,7 +2,7 @@
 
 import { LogOut, UserCircle2 } from "lucide-react";
 
-import { logout } from "@/app/actions/auth";
+import { signOut } from "@/app/actions/auth";
 import { BrandLogo } from "@/components/brand-logo";
 import { cn } from "@/lib/utils";
 import type { NavItem } from "@/lib/types";
@@ -60,7 +60,7 @@ export function AppShell({
             ))}
           </nav>
 
-          <form action={logout} className="mt-auto">
+          <form action={signOut} className="mt-auto">
             <button
               type="submit"
               className="flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
@@ -78,7 +78,7 @@ export function AppShell({
               <span className="text-[11px] font-semibold text-amber-500 dark:text-amber-400">
                 {roleLabel}
               </span>
-              <form action={logout}>
+              <form action={signOut}>
                 <button
                   type="submit"
                   aria-label="Esci"

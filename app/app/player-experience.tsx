@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 
 import { AppShell } from "@/components/app-shell";
 import { VenueDetailModal } from "@/components/venue-detail-modal";
-import { INITIAL_EVENTS, INITIAL_VENUES } from "@/lib/mock-data";
+import { INITIAL_EVENTS } from "@/lib/mock-data";
 import { PLAYER_NAV } from "@/lib/nav";
 import type { Venue } from "@/lib/types";
 
@@ -13,7 +13,13 @@ import { EventsView } from "./_components/events-view";
 import { ProfileView } from "./_components/profile-view";
 import { SearchView } from "./_components/search-view";
 
-export function PlayerExperience({ userName }: { userName: string }) {
+export function PlayerExperience({
+  userName,
+  venues,
+}: {
+  userName: string;
+  venues: Venue[];
+}) {
   const [tab, setTab] = useState("cerca");
 
   const [search, setSearch] = useState("");
@@ -22,22 +28,22 @@ export function PlayerExperience({ userName }: { userName: string }) {
   const [onlyFree, setOnlyFree] = useState(false);
 
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
-  const [bookedVenueId, setBookedVenueId] = useState<number | null>(null);
+  const [bookedVenueIds, setBookedVenueIds] = useState<string[]>([]);
 
   const filteredVenues = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return INITIAL_VENUES.filter((v) => {
+    return venues.filter((v) => {
       const matchesSearch =
         q === "" ||
         v.name.toLowerCase().includes(q) ||
         v.city.toLowerCase().includes(q) ||
         v.tags.some((t) => t.toLowerCase().includes(q));
       const matchesOpen = !onlyOpen || v.openNow;
-      const matchesFree = !onlyFree || v.freeTables > 0;
+      const matchesFree = !onlyFree || (v.freeTables ?? 1) > 0;
       const matchesGenres = genres.length === 0 || genres.every((g) => v.tags.includes(g));
       return matchesSearch && matchesOpen && matchesFree && matchesGenres;
-    }).sort((a, b) => a.distanceKm - b.distanceKm);
-  }, [search, genres, onlyOpen, onlyFree]);
+    });
+  }, [venues, search, genres, onlyOpen, onlyFree]);
 
   function toggleGenre(genre: string) {
     setGenres((prev) =>
@@ -62,8 +68,8 @@ export function PlayerExperience({ userName }: { userName: string }) {
     document.body.style.overflow = "";
   }
 
-  function handleBook() {
-    if (selectedVenue) setBookedVenueId(selectedVenue.id);
+  function handleBooked(venueId: string) {
+    setBookedVenueIds((prev) => (prev.includes(venueId) ? prev : [...prev, venueId]));
   }
 
   return (
@@ -86,18 +92,17 @@ export function PlayerExperience({ userName }: { userName: string }) {
           onOpenVenue={openVenue}
         />
       )}
-      {tab === "eventi" && <EventsView events={INITIAL_EVENTS} venues={INITIAL_VENUES} />}
+      {tab === "eventi" && <EventsView events={INITIAL_EVENTS} />}
       {tab === "community" && <CommunityView />}
       {tab === "profilo" && (
-        <ProfileView userName={userName} bookedCount={bookedVenueId ? 1 : 0} />
+        <ProfileView userName={userName} bookedCount={bookedVenueIds.length} />
       )}
 
       <VenueDetailModal
         venue={selectedVenue}
-        events={INITIAL_EVENTS}
-        booked={selectedVenue ? bookedVenueId === selectedVenue.id : false}
+        booked={selectedVenue ? bookedVenueIds.includes(selectedVenue.id) : false}
         onClose={closeVenue}
-        onBook={handleBook}
+        onBooked={handleBooked}
       />
     </AppShell>
   );

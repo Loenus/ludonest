@@ -1,6 +1,6 @@
 import { ChevronRight, LogOut, UserCircle2 } from "lucide-react";
 
-import { logout } from "@/app/actions/auth";
+import { signOut } from "@/app/actions/auth";
 import { Card } from "@/components/ui/card";
 
 interface ProfileViewProps {
@@ -44,7 +44,7 @@ export function ProfileView({ userName, bookedCount }: ProfileViewProps) {
             <ChevronRight size={15} className="text-muted-foreground" />
           </button>
         ))}
-        <form action={logout} style={{ borderTop: "1px solid var(--border)" }}>
+        <form action={signOut} style={{ borderTop: "1px solid var(--border)" }}>
           <button
             type="submit"
             className="flex w-full items-center justify-between px-4 py-3 text-xs text-foreground transition-colors hover:bg-muted/40 sm:px-5 sm:py-3.5 sm:text-sm"

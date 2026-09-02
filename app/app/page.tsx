@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { requireRole } from "@/lib/auth";
+import { listVenues } from "@/lib/venues";
 
 import { PlayerExperience } from "./player-experience";
 
@@ -9,6 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function PlayerPage() {
-  const session = await requireRole("gamer");
-  return <PlayerExperience userName={session.name} />;
+  const session = await requireRole("player");
+  const venues = await listVenues();
+  return <PlayerExperience userName={session.fullName} venues={venues} />;
 }

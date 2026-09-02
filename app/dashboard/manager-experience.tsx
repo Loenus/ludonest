@@ -3,15 +3,9 @@
 import { useMemo, useState } from "react";
 
 import { AppShell } from "@/components/app-shell";
-import {
-  GENRES,
-  INITIAL_EVENTS,
-  INITIAL_REQUESTS,
-  INITIAL_VENUES,
-  MANAGED_VENUE_ID,
-} from "@/lib/mock-data";
+import { GENRES } from "@/lib/mock-data";
 import { MANAGER_NAV } from "@/lib/nav";
-import type { BookingRequest, GameEvent, RequestStatus, Venue } from "@/lib/types";
+import type { Booking, GameEvent, Venue } from "@/lib/types";
 
 import { EventsView, type NewEventDraft } from "./_components/events-view";
 import { OverviewView } from "./_components/overview-view";
@@ -26,38 +20,26 @@ const EMPTY_DRAFT: NewEventDraft = {
   seatsTotal: 8,
 };
 
-/** The prototype manager always owns venue #1. */
-const OWNED_VENUE = INITIAL_VENUES.find((v) => v.id === MANAGED_VENUE_ID)!;
+interface ManagerExperienceProps {
+  userName: string;
+  venue: Venue;
+  bookings: Booking[];
+}
 
-export function ManagerExperience({ userName }: { userName: string }) {
+export function ManagerExperience({ userName, venue, bookings }: ManagerExperienceProps) {
   const [tab, setTab] = useState("dashboard");
 
-  const [venue, setVenue] = useState<Venue>(OWNED_VENUE);
-  const [events, setEvents] = useState<GameEvent[]>(INITIAL_EVENTS);
-  const [requests, setRequests] = useState<BookingRequest[]>(INITIAL_REQUESTS);
-
-  const [venueForm, setVenueForm] = useState<Venue>(OWNED_VENUE);
+  // Venue editing and events are local-only in Stage 1 (persistence is Stage 2).
+  const [venueForm, setVenueForm] = useState<Venue>(venue);
   const [saveMessage, setSaveMessage] = useState("");
-
+  const [events, setEvents] = useState<GameEvent[]>([]);
   const [showEventForm, setShowEventForm] = useState(false);
   const [draft, setDraft] = useState<NewEventDraft>(EMPTY_DRAFT);
 
-  const managerEvents = useMemo(
-    () =>
-      events
-        .filter((e) => e.venueId === MANAGED_VENUE_ID)
-        .sort((a, b) => a.date.localeCompare(b.date)),
-    [events],
+  const pendingCount = useMemo(
+    () => bookings.filter((b) => b.status === "pending").length,
+    [bookings],
   );
-
-  const pendingRequests = useMemo(
-    () => requests.filter((r) => r.status === "pending"),
-    [requests],
-  );
-
-  function updateRequestStatus(id: number, status: RequestStatus) {
-    setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
-  }
 
   function patchVenueForm(patch: Partial<Venue>) {
     setVenueForm((prev) => ({ ...prev, ...patch }));
@@ -73,8 +55,7 @@ export function ManagerExperience({ userName }: { userName: string }) {
   }
 
   function saveVenue() {
-    setVenue(venueForm);
-    setSaveMessage("Modifiche salvate");
+    setSaveMessage("Salvataggio disponibile a breve");
     setTimeout(() => setSaveMessage(""), 2500);
   }
 
@@ -89,7 +70,7 @@ export function ManagerExperience({ userName }: { userName: string }) {
       ...prev,
       {
         id: Date.now(),
-        venueId: MANAGED_VENUE_ID,
+        venueName: venue.name,
         title: draft.title,
         date: draft.date,
         time: draft.time,
@@ -117,10 +98,8 @@ export function ManagerExperience({ userName }: { userName: string }) {
       {tab === "dashboard" && (
         <OverviewView
           venue={venue}
-          pendingCount={pendingRequests.length}
-          upcomingEvents={managerEvents}
-          pendingRequests={pendingRequests}
-          onUpdateRequestStatus={updateRequestStatus}
+          bookings={bookings}
+          pendingCount={pendingCount}
           onGoToTab={setTab}
         />
       )}
@@ -135,7 +114,7 @@ export function ManagerExperience({ userName }: { userName: string }) {
       )}
       {tab === "eventi" && (
         <EventsView
-          events={managerEvents}
+          events={events}
           showForm={showEventForm}
           draft={draft}
           onToggleForm={() => setShowEventForm((v) => !v)}
@@ -144,9 +123,7 @@ export function ManagerExperience({ userName }: { userName: string }) {
           onDelete={deleteEvent}
         />
       )}
-      {tab === "prenotazioni" && (
-        <RequestsView requests={requests} onUpdateRequestStatus={updateRequestStatus} />
-      )}
+      {tab === "prenotazioni" && <RequestsView bookings={bookings} />}
     </AppShell>
   );
 }

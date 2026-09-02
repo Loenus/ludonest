@@ -4,14 +4,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { formatEventDate } from "@/lib/format";
-import type { GameEvent, Venue } from "@/lib/types";
+import type { GameEvent } from "@/lib/types";
 
 interface EventsViewProps {
   events: GameEvent[];
-  venues: Venue[];
 }
 
-export function EventsView({ events, venues }: EventsViewProps) {
+export function EventsView({ events }: EventsViewProps) {
   const sorted = [...events].sort((a, b) => a.date.localeCompare(b.date));
 
   return (
@@ -21,7 +20,6 @@ export function EventsView({ events, venues }: EventsViewProps) {
       </h1>
       <div className="flex w-full flex-col gap-2.5 sm:gap-3.5">
         {sorted.map((ev) => {
-          const venue = venues.find((v) => v.id === ev.venueId);
           const d = formatEventDate(ev.date);
           const pct = Math.round(((ev.seatsTotal - ev.seatsLeft) / ev.seatsTotal) * 100);
           const full = ev.seatsLeft === 0;
@@ -42,7 +40,7 @@ export function EventsView({ events, venues }: EventsViewProps) {
                     {ev.title}
                   </p>
                   <p className="mt-0.5 flex items-center gap-1 truncate text-[11px] text-muted-foreground sm:text-xs">
-                    <MapPin size={12} /> {venue ? venue.name : "—"} · {ev.time}
+                    <MapPin size={12} /> {ev.venueName} · {ev.time}
                   </p>
                   <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
                     <div
