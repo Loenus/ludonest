@@ -1,7 +1,6 @@
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { NextConfig } from "next";
-import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
 const projectRoot = dirname(fileURLToPath(import.meta.url));
 
@@ -16,7 +15,8 @@ const nextConfig: NextConfig = {
 
 export default nextConfig;
 
-// Lets `next dev` talk to the Cloudflare bindings/env defined in wrangler.jsonc
-// through `getCloudflareContext()`. No-op for `next build` / production.
-// Docs: https://opennext.js.org/cloudflare/get-started
-initOpenNextCloudflareForDev();
+// NOTE: if you ever start using Cloudflare bindings (KV / R2 / D1 / env) via
+// `getCloudflareContext()`, add back:
+//   import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
+//   initOpenNextCloudflareForDev();
+// so `next dev` can see them. Not needed today — the app only reads process.env.

@@ -35,7 +35,7 @@ Cloudflare's own "verified adapter" is being built on top of it.
 | --- | --- |
 | `wrangler.jsonc` | Worker name, entrypoint, compat flags, static assets |
 | `open-next.config.ts` | OpenNext adapter config (minimal — in-memory cache) |
-| `next.config.ts` | now calls `initOpenNextCloudflareForDev()` for `next dev` |
+| `next.config.ts` | unchanged (see the note about `initOpenNextCloudflareForDev()` if you add CF bindings later) |
 | `.github/workflows/deploy.yml` | migrate → build → deploy on push to `main` |
 | `.github/workflows/preview.yml` | per-PR preview version + comment |
 | `.dev.vars.example` | template for local `npm run preview` env |
@@ -256,8 +256,8 @@ is all dashboard-side:
 ## Part F — Local development
 
 - **`npm run dev`** — unchanged. Uses `.env.local`, Turbopack, fast refresh.
-  `initOpenNextCloudflareForDev()` in `next.config.ts` exposes any Cloudflare
-  bindings through `getCloudflareContext()` but is otherwise a no-op.
+  Does not touch `.dev.vars`. (If you later use `getCloudflareContext()`, add
+  `initOpenNextCloudflareForDev()` to `next.config.ts` — see the note there.)
 - **`npm run preview`** — builds with OpenNext and serves the actual Worker
   locally via `workerd`. Reads `.dev.vars` (not `.env.local`). Use this to
   reproduce a production-only bug before pushing.
