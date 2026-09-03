@@ -1,4 +1,4 @@
-import { Building2, ClipboardList, Dice6, TrendingUp } from "lucide-react";
+import { ClipboardList, Dice6, TrendingUp } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
@@ -22,7 +22,6 @@ export function OverviewView({ venue, bookings, pendingCount, onGoToTab }: Overv
   const stats: { label: string; value: string; icon: LucideIcon }[] = [
     { label: "Richieste in attesa", value: String(pendingCount), icon: ClipboardList },
     { label: "Confermate in programma", value: String(acceptedUpcoming), icon: TrendingUp },
-    { label: "Tavoli del locale", value: String(venue.totalTables), icon: Building2 },
     {
       label: "Valutazione",
       value: venue.rating == null ? "—" : `${venue.rating.toFixed(1)}/6`,
@@ -39,7 +38,7 @@ export function OverviewView({ venue, bookings, pendingCount, onGoToTab }: Overv
         <p className="mt-1 text-sm text-muted-foreground">{venue.name} · {venue.city}</p>
       </div>
 
-      <div className="grid w-full grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+      <div className="grid w-full grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3">
         {stats.map((s) => (
           <Card
             key={s.label}

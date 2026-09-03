@@ -129,7 +129,7 @@ export function Hero({
             </span>
             <div className="leading-tight">
               <p className="text-xs font-semibold text-foreground">Il Dado Nero</p>
-              <p className="text-[10px] text-muted-foreground">3 tavoli liberi · 0,8 km</p>
+              <p className="text-[10px] text-muted-foreground">Aperto ora · 0,8 km</p>
             </div>
           </div>
 

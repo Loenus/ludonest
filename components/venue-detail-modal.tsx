@@ -12,6 +12,7 @@ import { hashIndex } from "@/lib/format";
 import { formatHoursLines, formatHoursShort } from "@/lib/hours";
 import { MATCH_POSTS, SPINE_COLORS } from "@/lib/mock-data";
 import type { Venue } from "@/lib/types";
+import { VenueAvatar } from "@/lib/venue-avatar";
 
 interface VenueDetailModalProps {
   venue: Venue | null;
@@ -68,13 +69,16 @@ function ModalBody({
         />
         <div className="p-5 md:p-6">
           <div className="flex items-start justify-between gap-3">
-            <div>
-              <h2 className="ff-display text-[1.35rem] font-bold tracking-[-0.03em] text-foreground">
-                {venue.name}
-              </h2>
-              <p className="mt-1 flex items-center gap-1 text-[0.82rem] text-muted-foreground">
-                <MapPin size={13} /> {venue.address}, {venue.city}
-              </p>
+            <div className="flex min-w-0 gap-3">
+              <VenueAvatar venue={venue} size={48} className="mt-0.5" />
+              <div className="min-w-0">
+                <h2 className="ff-display text-[1.35rem] font-bold tracking-[-0.03em] text-foreground">
+                  {venue.name}
+                </h2>
+                <p className="mt-1 flex items-center gap-1 text-[0.82rem] text-muted-foreground">
+                  <MapPin size={13} className="shrink-0" /> {venue.address}, {venue.city}
+                </p>
+              </div>
             </div>
             <button
               onClick={onClose}
@@ -90,12 +94,16 @@ function ModalBody({
               <Clock size={13} /> {hoursSummary || "Orari non disponibili"}
             </span>
             <span
-              className="flex items-center gap-1.5 text-xs"
-              style={{ color: venue.openNow ? "var(--teal)" : "var(--coral)" }}
+              className={`flex items-center gap-1.5 text-xs ${
+                venue.openNow
+                  ? "text-emerald-700 dark:text-emerald-400"
+                  : "text-rose-700 dark:text-rose-400"
+              }`}
             >
               <span
-                className="h-1.5 w-1.5 rounded-full"
-                style={{ background: venue.openNow ? "var(--teal)" : "var(--coral)" }}
+                className={`h-1.5 w-1.5 rounded-full ${
+                  venue.openNow ? "bg-emerald-500" : "bg-rose-500"
+                }`}
               />
               {venue.openNow ? "Aperto ora" : "Chiuso ora"}
             </span>

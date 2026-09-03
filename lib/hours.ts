@@ -121,6 +121,32 @@ export function parseHours(value: unknown): WeeklyHours | null {
   return anyValid ? out : null;
 }
 
+/**
+ * Parse + validate the hidden JSON `hours` field of a form submission. Hours
+ * are mandatory: every weekday must be defined (open with valid times, or
+ * explicitly closed) and at least one day must be open. Returns the validated
+ * week, or an Italian error string on any failure.
+ */
+export function readHoursField(raw: unknown): WeeklyHours | string {
+  if (typeof raw !== "string" || raw.trim() === "") {
+    return "Imposta gli orari di apertura del locale.";
+  }
+  let json: unknown;
+  try {
+    json = JSON.parse(raw);
+  } catch {
+    return "Gli orari di apertura non sono validi.";
+  }
+  const parsed = weeklyHoursSchema.safeParse(json);
+  if (!parsed.success) {
+    return "Gli orari di apertura non sono validi.";
+  }
+  if (WEEKDAYS.every((d) => parsed.data[d].closed)) {
+    return "Imposta gli orari di apertura per almeno un giorno.";
+  }
+  return parsed.data;
+}
+
 function displayClose(close: string): string {
   return close === "00:00" ? "24:00" : close;
 }

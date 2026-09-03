@@ -25,7 +25,6 @@ export function PlayerExperience({
   const [search, setSearch] = useState("");
   const [genres, setGenres] = useState<string[]>([]);
   const [onlyOpen, setOnlyOpen] = useState(false);
-  const [onlyFree, setOnlyFree] = useState(false);
 
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [bookedVenueIds, setBookedVenueIds] = useState<string[]>([]);
@@ -39,11 +38,10 @@ export function PlayerExperience({
         v.city.toLowerCase().includes(q) ||
         v.tags.some((t) => t.toLowerCase().includes(q));
       const matchesOpen = !onlyOpen || v.openNow;
-      const matchesFree = !onlyFree || (v.freeTables ?? 1) > 0;
       const matchesGenres = genres.length === 0 || genres.every((g) => v.tags.includes(g));
-      return matchesSearch && matchesOpen && matchesFree && matchesGenres;
+      return matchesSearch && matchesOpen && matchesGenres;
     });
-  }, [venues, search, genres, onlyOpen, onlyFree]);
+  }, [venues, search, genres, onlyOpen]);
 
   function toggleGenre(genre: string) {
     setGenres((prev) =>
@@ -55,7 +53,6 @@ export function PlayerExperience({
     setSearch("");
     setGenres([]);
     setOnlyOpen(false);
-    setOnlyFree(false);
   }
 
   function openVenue(venue: Venue) {
@@ -83,10 +80,9 @@ export function PlayerExperience({
       {tab === "cerca" && (
         <SearchView
           venues={filteredVenues}
-          filters={{ search, onlyOpen, onlyFree, genres }}
+          filters={{ search, onlyOpen, genres }}
           onSearchChange={setSearch}
           onToggleOpen={() => setOnlyOpen((v) => !v)}
-          onToggleFree={() => setOnlyFree((v) => !v)}
           onToggleGenre={toggleGenre}
           onResetFilters={resetFilters}
           onOpenVenue={openVenue}

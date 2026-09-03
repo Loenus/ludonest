@@ -1,11 +1,12 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useId, useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 
 import { submitClaim, type ClaimState } from "@/app/actions/claims";
 import { AddressAutocomplete } from "@/components/address-autocomplete";
 import { HoursEditor } from "@/components/hours-editor";
+import { LogoUpload } from "@/components/logo-upload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { parseHours, WEEKDAYS } from "@/lib/hours";
@@ -17,6 +18,10 @@ export function ClaimForm() {
   const [state, formAction, pending] = useActionState<ClaimState, FormData>(submitClaim, {});
   const [invalid, setInvalid] = useState<InvalidMap>({});
   const anyInvalid = Boolean(invalid.name || invalid.address || invalid.hours);
+
+  // Stable seed for the generated logo preview (the real default is later
+  // seeded from the venue id).
+  const logoSeed = useId();
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     const fd = new FormData(e.currentTarget);
@@ -53,6 +58,8 @@ export function ClaimForm() {
           className="h-11 rounded-xl aria-invalid:ring-destructive/40"
         />
       </label>
+
+      <LogoUpload seed={logoSeed} />
 
       <AddressAutocomplete
         required

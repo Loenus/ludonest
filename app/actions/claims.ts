@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { requireRole, requireUser } from "@/lib/auth";
-import { WEEKDAYS, weeklyHoursSchema, type WeeklyHours } from "@/lib/hours";
+import { readHoursField } from "@/lib/hours";
+import { safeVenueLogoPath } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
 
 export interface ClaimState {
@@ -37,32 +38,6 @@ const claimSchema = z.object({
   description: z.string().trim().max(1000).optional(),
 });
 
-/**
- * Parse + validate the hidden JSON `hours` field. Hours are mandatory: every
- * day of the week must be defined (open with valid times, or explicitly
- * closed), and at least one day must be open. Returns an error string on any
- * failure, otherwise the validated week.
- */
-function readHours(raw: FormDataEntryValue | null): WeeklyHours | string {
-  if (typeof raw !== "string" || raw.trim() === "") {
-    return "Imposta gli orari di apertura del locale.";
-  }
-  let json: unknown;
-  try {
-    json = JSON.parse(raw);
-  } catch {
-    return "Gli orari di apertura non sono validi.";
-  }
-  const parsed = weeklyHoursSchema.safeParse(json);
-  if (!parsed.success) {
-    return "Gli orari di apertura non sono validi.";
-  }
-  if (WEEKDAYS.every((d) => parsed.data[d].closed)) {
-    return "Imposta gli orari di apertura per almeno un giorno.";
-  }
-  return parsed.data;
-}
-
 /** A registered user submits a request to open/manage a venue. */
 export async function submitClaim(_prev: ClaimState, formData: FormData): Promise<ClaimState> {
   const session = await requireUser();
@@ -79,10 +54,12 @@ export async function submitClaim(_prev: ClaimState, formData: FormData): Promis
     return { error: parsed.error.issues[0]?.message ?? "Dati non validi." };
   }
 
-  const hours = readHours(formData.get("hours"));
+  const hours = readHoursField(formData.get("hours"));
   if (typeof hours === "string") {
     return { error: hours };
   }
+
+  const logoPath = safeVenueLogoPath(formData.get("logoPath"), session.userId);
 
   const supabase = await createClient();
 
@@ -101,6 +78,7 @@ export async function submitClaim(_prev: ClaimState, formData: FormData): Promis
     lat: parsed.data.lat,
     lng: parsed.data.lng,
     hours,
+    logo_path: logoPath,
     description: parsed.data.description ?? null,
   });
 

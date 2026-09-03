@@ -29,9 +29,7 @@ interface ManagerExperienceProps {
 export function ManagerExperience({ userName, venue, bookings }: ManagerExperienceProps) {
   const [tab, setTab] = useState("dashboard");
 
-  // Venue editing and events are local-only in Stage 1 (persistence is Stage 2).
-  const [venueForm, setVenueForm] = useState<Venue>(venue);
-  const [saveMessage, setSaveMessage] = useState("");
+  // Events are still local-only in Stage 1 (persistence is Stage 2).
   const [events, setEvents] = useState<GameEvent[]>([]);
   const [showEventForm, setShowEventForm] = useState(false);
   const [draft, setDraft] = useState<NewEventDraft>(EMPTY_DRAFT);
@@ -40,24 +38,6 @@ export function ManagerExperience({ userName, venue, bookings }: ManagerExperien
     () => bookings.filter((b) => b.status === "pending").length,
     [bookings],
   );
-
-  function patchVenueForm(patch: Partial<Venue>) {
-    setVenueForm((prev) => ({ ...prev, ...patch }));
-  }
-
-  function toggleVenueFormTag(tag: string) {
-    setVenueForm((prev) => ({
-      ...prev,
-      tags: prev.tags.includes(tag)
-        ? prev.tags.filter((t) => t !== tag)
-        : [...prev.tags, tag],
-    }));
-  }
-
-  function saveVenue() {
-    setSaveMessage("Salvataggio disponibile a breve");
-    setTimeout(() => setSaveMessage(""), 2500);
-  }
 
   function patchDraft(patch: Partial<NewEventDraft>) {
     setDraft((prev) => ({ ...prev, ...patch }));
@@ -103,15 +83,7 @@ export function ManagerExperience({ userName, venue, bookings }: ManagerExperien
           onGoToTab={setTab}
         />
       )}
-      {tab === "locale" && (
-        <VenueView
-          form={venueForm}
-          saveMessage={saveMessage}
-          onChange={patchVenueForm}
-          onToggleTag={toggleVenueFormTag}
-          onSave={saveVenue}
-        />
-      )}
+      {tab === "locale" && <VenueView venue={venue} />}
       {tab === "eventi" && (
         <EventsView
           events={events}

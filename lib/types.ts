@@ -43,7 +43,8 @@ export interface Venue {
   /** Address coordinates from the geocoder (nullable until set). */
   lat: number | null;
   lng: number | null;
-  totalTables: number;
+  /** Object path in the `venue-logos` bucket, or `null` for the generated default. */
+  logoPath: string | null;
   tags: string[];
   description: string;
   rating: number | null;
@@ -51,8 +52,6 @@ export interface Venue {
   ownerId: string | null;
   /** Derived from `hours`. */
   openNow: boolean;
-  /** Not tracked yet — undefined until real-time table state exists. */
-  freeTables?: number;
   /** Not tracked yet — undefined until geolocation exists. */
   distanceKm?: number;
 }

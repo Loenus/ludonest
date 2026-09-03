@@ -6,7 +6,6 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 
 import { signIn, signUp, signInWithGoogle, type AuthState } from "@/app/actions/auth";
 import { BrandLogo } from "@/components/brand-logo";
-import { Dice3D } from "@/components/dice-3d";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CLAIM_PATH, HOME_PATH } from "@/lib/session";
@@ -57,7 +56,6 @@ export function AuthForm({ variant }: { variant: Variant }) {
 
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center text-center">
-          <Dice3D size={76} className="mb-5" />
           <BrandLogo size="md" />
           <h1 className="ff-display mt-6 text-2xl font-bold text-foreground">{copy.heading}</h1>
           <p className="mt-1.5 text-sm text-muted-foreground">{copy.subtitle}</p>

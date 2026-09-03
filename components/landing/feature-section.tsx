@@ -11,7 +11,7 @@ const PILLARS: {
     step: "01",
     icon: MapPin,
     title: "Prenota un tavolo",
-    body: "Trova il ludopub o il locale da gioco più vicino a te, controlla i tavoli liberi in tempo reale e prenota in un tocco. Senza telefonate.",
+    body: "Trova il ludopub o il locale da gioco più vicino a te, controlla orari e generi disponibili e prenota in un tocco. Senza telefonate.",
   },
   {
     step: "02",

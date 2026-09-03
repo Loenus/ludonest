@@ -1,4 +1,4 @@
-import { Clock, Dices, Search, Users } from "lucide-react";
+import { Clock, Dices, Search } from "lucide-react";
 
 import { FilterChip } from "@/components/filter-chip";
 import { VenueCard } from "@/components/venue-card";
@@ -10,7 +10,6 @@ import type { Venue } from "@/lib/types";
 export interface VenueFilters {
   search: string;
   onlyOpen: boolean;
-  onlyFree: boolean;
   genres: string[];
 }
 
@@ -19,7 +18,6 @@ interface SearchViewProps {
   filters: VenueFilters;
   onSearchChange: (value: string) => void;
   onToggleOpen: () => void;
-  onToggleFree: () => void;
   onToggleGenre: (genre: string) => void;
   onResetFilters: () => void;
   onOpenVenue: (venue: Venue) => void;
@@ -30,7 +28,6 @@ export function SearchView({
   filters,
   onSearchChange,
   onToggleOpen,
-  onToggleFree,
   onToggleGenre,
   onResetFilters,
   onOpenVenue,
@@ -61,7 +58,6 @@ export function SearchView({
 
       <div className="flex flex-wrap gap-2">
         <FilterChip label="Aperto ora" icon={Clock} active={filters.onlyOpen} onClick={onToggleOpen} />
-        <FilterChip label="Tavoli liberi" icon={Users} active={filters.onlyFree} onClick={onToggleFree} />
         {GENRES.map((g) => (
           <FilterChip
             key={g}

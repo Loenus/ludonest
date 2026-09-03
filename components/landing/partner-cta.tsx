@@ -6,7 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const PERKS = [
-  { icon: LayoutDashboard, text: "Dashboard con visite, richieste e occupazione tavoli" },
+  { icon: LayoutDashboard, text: "Dashboard con visite, richieste e statistiche del locale" },
   { icon: Store, text: "Scheda del locale sempre aggiornata: orari, generi, descrizione" },
   { icon: ClipboardList, text: "Prenotazioni ed eventi gestiti da un unico pannello" },
 ];
@@ -36,7 +36,7 @@ export function PartnerCta() {
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
             Diventa partner di LudoNest: fatti trovare dai giocatori della tua città,
-            riempi i tavoli nelle serate vuote e gestisci prenotazioni ed eventi da
+            riempi il locale nelle serate vuote e gestisci prenotazioni ed eventi da
             un&apos;unica dashboard.
           </p>
 

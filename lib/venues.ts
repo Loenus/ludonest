@@ -13,7 +13,7 @@ interface VenueRow {
   hours: unknown;
   lat: number | null;
   lng: number | null;
-  total_tables: number;
+  logo_path: string | null;
   genres: string[];
   description: string | null;
   rating: number | string | null;
@@ -30,7 +30,7 @@ export function mapVenue(row: VenueRow): Venue {
     hours,
     lat: row.lat ?? null,
     lng: row.lng ?? null,
-    totalTables: row.total_tables,
+    logoPath: row.logo_path ?? null,
     tags: row.genres ?? [],
     description: row.description ?? "",
     rating: row.rating == null ? null : Number(row.rating),

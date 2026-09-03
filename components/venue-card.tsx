@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { hashIndex } from "@/lib/format";
 import { SPINE_COLORS } from "@/lib/mock-data";
 import type { Venue } from "@/lib/types";
+import { VenueAvatar } from "@/lib/venue-avatar";
 
 interface VenueCardProps {
   venue: Venue;
@@ -23,16 +24,19 @@ export function VenueCard({ venue, onOpen }: VenueCardProps) {
             style={{ background: spine }}
           />
           <div className="flex-1 p-4 sm:p-4">
-            <div className="flex items-start justify-between gap-2 sm:gap-3">
-              <div className="min-w-0">
-                <h3 className="truncate text-sm sm:text-base font-semibold text-foreground">
-                  {venue.name}
-                </h3>
-                <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                  {venue.address}, {venue.city}
-                </p>
+            <div className="flex items-start gap-3">
+              <VenueAvatar venue={venue} size={40} />
+              <div className="flex min-w-0 flex-1 items-start justify-between gap-2 sm:gap-3">
+                <div className="min-w-0">
+                  <h3 className="truncate text-sm sm:text-base font-semibold text-foreground">
+                    {venue.name}
+                  </h3>
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                    {venue.address}, {venue.city}
+                  </p>
+                </div>
+                <RatingBadge rating={venue.rating} />
               </div>
-              <RatingBadge rating={venue.rating} />
             </div>
             <div className="mt-3 flex flex-wrap gap-1.5">
               {venue.tags.map((t) => (
@@ -45,29 +49,26 @@ export function VenueCard({ venue, onOpen }: VenueCardProps) {
                 </Badge>
               ))}
             </div>
-            <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 border-t border-border pt-2.5">
-              <div className="flex items-center gap-2 sm:gap-3 text-xs text-muted-foreground">
-                {venue.distanceKm != null && (
-                  <span className="flex items-center gap-1">
-                    <Navigation size={12} />
-                    <span className="font-mono">{venue.distanceKm} km</span>
-                  </span>
-                )}
-                <span
-                  className="flex items-center gap-1.5"
-                  style={{ color: venue.openNow ? "var(--teal)" : "var(--coral)" }}
-                >
-                  <span
-                    className="h-1.5 w-1.5 rounded-full"
-                    style={{ background: venue.openNow ? "var(--teal)" : "var(--coral)" }}
-                  />
-                  {venue.openNow ? "Aperto ora" : "Chiuso"}
+            <div className="mt-4 flex items-center gap-2 sm:gap-3 border-t border-border pt-2.5 text-xs text-muted-foreground">
+              {venue.distanceKm != null && (
+                <span className="flex items-center gap-1">
+                  <Navigation size={12} />
+                  <span className="font-mono">{venue.distanceKm} km</span>
                 </span>
-              </div>
-              <span className="font-mono text-xs text-muted-foreground text-right sm:text-left">
-                {venue.freeTables != null
-                  ? `${venue.freeTables}/${venue.totalTables} tavoli`
-                  : `${venue.totalTables} tavoli`}
+              )}
+              <span
+                className={`flex items-center gap-1.5 ${
+                  venue.openNow
+                    ? "text-emerald-700 dark:text-emerald-400"
+                    : "text-rose-700 dark:text-rose-400"
+                }`}
+              >
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    venue.openNow ? "bg-emerald-500" : "bg-rose-500"
+                  }`}
+                />
+                {venue.openNow ? "Aperto ora" : "Chiuso"}
               </span>
             </div>
           </div>
