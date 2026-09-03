@@ -6,6 +6,7 @@ import { Check, MapPin, X } from "lucide-react";
 import { approveClaim, rejectClaim } from "@/app/actions/claims";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { formatHoursShort } from "@/lib/hours";
 import type { VenueClaim } from "@/lib/types";
 
 export function ClaimsView({ claims }: { claims: VenueClaim[] }) {
@@ -46,7 +47,7 @@ export function ClaimsView({ claims }: { claims: VenueClaim[] }) {
                 <h2 className="ff-display text-base font-semibold text-foreground">{c.name}</h2>
                 <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
                   <MapPin size={12} /> {c.address}, {c.city}
-                  {c.hours ? ` · ${c.hours}` : ""}
+                  {formatHoursShort(c.hours) && ` · ${formatHoursShort(c.hours)}`}
                 </p>
               </div>
               <div className="text-right text-xs text-muted-foreground">

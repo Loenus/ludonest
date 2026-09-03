@@ -602,12 +602,15 @@ html:not(.dark) body {
 .word-roll {
   display: inline-grid;
   height: 1.25em;
+  line-height: 1.25;
   overflow: hidden;
   vertical-align: bottom;
 }
 
 .word-roll > span {
   grid-area: 1 / 1;
+  align-self: center;
+  line-height: 1.25;
   white-space: nowrap;
   opacity: 0;
   transform: translateY(70%);

@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { hashIndex } from "@/lib/format";
+import { formatHoursLines, formatHoursShort } from "@/lib/hours";
 import { MATCH_POSTS, SPINE_COLORS } from "@/lib/mock-data";
 import type { Venue } from "@/lib/types";
 
@@ -39,6 +40,8 @@ function ModalBody({
 }) {
   const spine = SPINE_COLORS[hashIndex(venue.id, SPINE_COLORS.length)];
   const venuePosts = MATCH_POSTS.filter((p) => p.venueName === venue.name);
+  const hoursSummary = formatHoursShort(venue.hours);
+  const hoursLines = formatHoursLines(venue.hours);
 
   const action = requestBooking.bind(null, venue.id);
   const [state, formAction, pending] = useActionState<BookingFormState, FormData>(action, {});
@@ -84,7 +87,7 @@ function ModalBody({
           <div className="mt-4 flex flex-wrap items-center gap-4">
             <RatingBadge rating={venue.rating} />
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Clock size={13} /> {venue.hours || "Orari non disponibili"}
+              <Clock size={13} /> {hoursSummary || "Orari non disponibili"}
             </span>
             <span
               className="flex items-center gap-1.5 text-xs"
@@ -97,6 +100,22 @@ function ModalBody({
               {venue.openNow ? "Aperto ora" : "Chiuso ora"}
             </span>
           </div>
+
+          {hoursLines.length > 1 && (
+            <details className="mt-2.5 text-xs text-muted-foreground">
+              <summary className="cursor-pointer select-none font-medium text-foreground/80 marker:text-muted-foreground">
+                Orari per giorno
+              </summary>
+              <ul className="mt-2 flex flex-col gap-1">
+                {hoursLines.map((row) => (
+                  <li key={row.label} className="flex justify-between gap-4">
+                    <span className="font-medium text-foreground/80">{row.label}</span>
+                    <span>{row.value}</span>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
 
           <div className="mt-4 flex flex-wrap gap-1.5">
             {venue.tags.map((t) => (
@@ -192,7 +211,7 @@ function ModalBody({
                     rows={2}
                     maxLength={500}
                     placeholder="Es. tavolo per Terraforming Mars, siamo principianti…"
-                    className="w-full rounded-xl border border-input bg-input/30 px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                    className="w-full rounded-xl border border-input bg-input/30 px-3 py-2 text-base text-foreground outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 sm:text-sm"
                   />
                 </label>
 

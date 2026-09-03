@@ -55,7 +55,7 @@ export function SearchView({
           value={filters.search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Cerca ludopub..."
-          className="h-11 w-full rounded-2xl border border-border/60 bg-muted/40 pl-10 text-sm shadow-sm transition-all duration-200 focus-visible:bg-background focus-visible:shadow-md sm:h-12"
+          className="h-11 w-full rounded-2xl border border-border/60 bg-muted/40 pl-10 text-base shadow-sm transition-all duration-200 focus-visible:bg-background focus-visible:shadow-md sm:h-12 sm:text-sm"
         />
       </div>
 

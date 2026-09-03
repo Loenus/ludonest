@@ -5,19 +5,63 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { requireRole, requireUser } from "@/lib/auth";
+import { WEEKDAYS, weeklyHoursSchema, type WeeklyHours } from "@/lib/hours";
 import { createClient } from "@/lib/supabase/server";
 
 export interface ClaimState {
   error?: string;
 }
 
+/** Empty hidden fields arrive as "" — treat them as "not provided". */
+const blankToUndefined = (v: unknown) =>
+  typeof v === "string" && v.trim() === "" ? undefined : v;
+
 const claimSchema = z.object({
   name: z.string().trim().min(2, { error: "Inserisci il nome del locale." }),
-  city: z.string().trim().min(2, { error: "Inserisci la città." }),
-  address: z.string().trim().min(4, { error: "Inserisci l'indirizzo." }),
-  hours: z.string().trim().max(120).optional(),
+  address: z
+    .string()
+    .trim()
+    .min(4, { error: "Seleziona un indirizzo dai suggerimenti." }),
+  city: z
+    .string()
+    .trim()
+    .min(2, { error: "Seleziona un indirizzo dai suggerimenti." }),
+  lat: z.preprocess(
+    blankToUndefined,
+    z.coerce.number({ error: "Seleziona un indirizzo dai suggerimenti." }).gte(-90).lte(90),
+  ),
+  lng: z.preprocess(
+    blankToUndefined,
+    z.coerce.number({ error: "Seleziona un indirizzo dai suggerimenti." }).gte(-180).lte(180),
+  ),
   description: z.string().trim().max(1000).optional(),
 });
+
+/**
+ * Parse + validate the hidden JSON `hours` field. Hours are mandatory: every
+ * day of the week must be defined (open with valid times, or explicitly
+ * closed), and at least one day must be open. Returns an error string on any
+ * failure, otherwise the validated week.
+ */
+function readHours(raw: FormDataEntryValue | null): WeeklyHours | string {
+  if (typeof raw !== "string" || raw.trim() === "") {
+    return "Imposta gli orari di apertura del locale.";
+  }
+  let json: unknown;
+  try {
+    json = JSON.parse(raw);
+  } catch {
+    return "Gli orari di apertura non sono validi.";
+  }
+  const parsed = weeklyHoursSchema.safeParse(json);
+  if (!parsed.success) {
+    return "Gli orari di apertura non sono validi.";
+  }
+  if (WEEKDAYS.every((d) => parsed.data[d].closed)) {
+    return "Imposta gli orari di apertura per almeno un giorno.";
+  }
+  return parsed.data;
+}
 
 /** A registered user submits a request to open/manage a venue. */
 export async function submitClaim(_prev: ClaimState, formData: FormData): Promise<ClaimState> {
@@ -25,13 +69,19 @@ export async function submitClaim(_prev: ClaimState, formData: FormData): Promis
 
   const parsed = claimSchema.safeParse({
     name: formData.get("name"),
-    city: formData.get("city"),
     address: formData.get("address"),
-    hours: formData.get("hours") || undefined,
+    city: formData.get("city"),
+    lat: formData.get("lat"),
+    lng: formData.get("lng"),
     description: formData.get("description") || undefined,
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Dati non validi." };
+  }
+
+  const hours = readHours(formData.get("hours"));
+  if (typeof hours === "string") {
+    return { error: hours };
   }
 
   const supabase = await createClient();
@@ -48,7 +98,9 @@ export async function submitClaim(_prev: ClaimState, formData: FormData): Promis
     name: parsed.data.name,
     city: parsed.data.city,
     address: parsed.data.address,
-    hours: parsed.data.hours ?? null,
+    lat: parsed.data.lat,
+    lng: parsed.data.lng,
+    hours,
     description: parsed.data.description ?? null,
   });
 

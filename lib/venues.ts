@@ -1,7 +1,7 @@
 import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
-import { isOpenNow } from "@/lib/format";
+import { isOpenNow, parseHours } from "@/lib/hours";
 import type { Venue, VenueStatus } from "@/lib/types";
 
 interface VenueRow {
@@ -10,7 +10,9 @@ interface VenueRow {
   name: string;
   city: string;
   address: string;
-  hours: string | null;
+  hours: unknown;
+  lat: number | null;
+  lng: number | null;
   total_tables: number;
   genres: string[];
   description: string | null;
@@ -19,13 +21,15 @@ interface VenueRow {
 }
 
 export function mapVenue(row: VenueRow): Venue {
-  const hours = row.hours ?? "";
+  const hours = parseHours(row.hours);
   return {
     id: row.id,
     name: row.name,
     city: row.city,
     address: row.address,
     hours,
+    lat: row.lat ?? null,
+    lng: row.lng ?? null,
     totalTables: row.total_tables,
     tags: row.genres ?? [],
     description: row.description ?? "",

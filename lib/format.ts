@@ -24,20 +24,6 @@ export function hashIndex(id: string, buckets: number): number {
   return Math.abs(h) % buckets;
 }
 
-/** Best-effort "is the venue open right now" from an "HH:MM - HH:MM" string. */
-export function isOpenNow(hours: string, now: Date = new Date()): boolean {
-  const m = hours.match(/(\d{1,2}):(\d{2})\s*[-–]\s*(\d{1,2}):(\d{2})/);
-  if (!m) return false;
-  const [, sh, sm, eh, em] = m;
-  const cur = now.getHours() * 60 + now.getMinutes();
-  const start = Number(sh) * 60 + Number(sm);
-  let end = Number(eh) * 60 + Number(em);
-  if (end <= start) end += 24 * 60; // closes after midnight
-  return cur >= start && cur < end
-    ? true
-    : cur + 24 * 60 >= start && cur + 24 * 60 < end;
-}
-
 /* ------------------------------------------------------------------ */
 /*  Booking date helpers (manager dashboard)                           */
 /* ------------------------------------------------------------------ */

@@ -66,6 +66,30 @@ export async function requireRole(role: AppRole): Promise<Session> {
   redirect(HOME_PATH[session.role]);
 }
 
+/** True when this user has a venue claim still awaiting admin review. */
+export const hasPendingClaim = cache(async (userId: string): Promise<boolean> => {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("venue_claims")
+    .select("id")
+    .eq("requester_id", userId)
+    .eq("status", "pending")
+    .maybeSingle();
+  return Boolean(data);
+});
+
+/**
+ * Where a session should land from the marketing site. A would-be manager whose
+ * claim hasn't been approved yet still carries the `player` role, but belongs in
+ * the claim-status page — not the player app.
+ */
+export async function resolveHomePath(session: Session): Promise<string> {
+  if (session.role === "player" && (await hasPendingClaim(session.userId))) {
+    return CLAIM_PATH;
+  }
+  return HOME_PATH[session.role];
+}
+
 /** The venue owned by the current manager (or `null`). */
 export const getManagedVenue = cache(async () => {
   const session = await getSession();

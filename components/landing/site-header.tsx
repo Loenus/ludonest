@@ -9,7 +9,13 @@ import type { Session } from "@/lib/types";
 const CTA_CLASS =
   "h-9 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 px-4 text-xs font-semibold text-slate-950 shadow-md shadow-amber-400/30 transition-all hover:-translate-y-0.5 hover:shadow-lg";
 
-export function SiteHeader({ session }: { session: Session | null }) {
+export function SiteHeader({
+  session,
+  homeHref,
+}: {
+  session: Session | null;
+  homeHref: string | null;
+}) {
   return (
     <header className="sticky top-0 z-40 border-b border-border/50 bg-background/70 backdrop-blur">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
@@ -18,7 +24,10 @@ export function SiteHeader({ session }: { session: Session | null }) {
         </Link>
 
         {session ? (
-          <Link href={HOME_PATH[session.role]} className={cn(buttonVariants(), CTA_CLASS)}>
+          <Link
+            href={homeHref ?? HOME_PATH[session.role]}
+            className={cn(buttonVariants(), CTA_CLASS)}
+          >
             Vai alla tua area
           </Link>
         ) : (

@@ -30,7 +30,15 @@ async function siteOrigin(): Promise<string> {
   );
 }
 
-async function homeForCurrentUser(): Promise<string> {
+/**
+ * Where to land after a successful sign-in. An approved manager/superadmin goes
+ * to their area; a still-`player` account that signed in from the partner page
+ * is a would-be manager whose claim isn't approved yet, so it's routed to the
+ * claim flow — which shows the "Richiesta in revisione" status (or the form).
+ */
+async function destinationAfterSignIn(
+  variant: "player" | "manager",
+): Promise<string> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -41,12 +49,14 @@ async function homeForCurrentUser(): Promise<string> {
     .select("role")
     .eq("id", user.id)
     .single();
-  return HOME_PATH[(data?.role as AppRole) ?? "player"];
+  const role = (data?.role as AppRole) ?? "player";
+  if (role === "manager" || role === "superadmin") return HOME_PATH[role];
+  return variant === "manager" ? CLAIM_PATH : HOME_PATH.player;
 }
 
 /** Email + password sign-in. `variant` is the page that invoked the action. */
 export async function signIn(
-  _variant: "player" | "manager",
+  variant: "player" | "manager",
   _prev: AuthState,
   formData: FormData,
 ): Promise<AuthState> {
@@ -64,7 +74,7 @@ export async function signIn(
     return { error: "Email o password non corretti." };
   }
 
-  redirect(await homeForCurrentUser());
+  redirect(await destinationAfterSignIn(variant));
 }
 
 /** Email + password registration. Managers are routed to the venue-claim form. */

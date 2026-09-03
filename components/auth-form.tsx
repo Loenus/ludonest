@@ -45,7 +45,7 @@ export function AuthForm({ variant }: { variant: Variant }) {
   const nextAfterOAuth = variant === "manager" ? CLAIM_PATH : HOME_PATH.player;
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center px-4 py-12">
+    <main className="relative flex min-h-svh flex-col items-center justify-center px-4 py-12">
       <div className="landing-grid pointer-events-none absolute inset-0 -z-10" aria-hidden />
 
       <Link

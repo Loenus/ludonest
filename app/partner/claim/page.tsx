@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeft, Clock3 } from "lucide-react";
+import { ArrowLeft, Clock3, LogOut } from "lucide-react";
 
+import { signOut } from "@/app/actions/auth";
 import { requireUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -34,7 +35,7 @@ export default async function ClaimPage() {
     .maybeSingle();
 
   return (
-    <main className="relative mx-auto flex min-h-screen w-full max-w-lg flex-col justify-center px-4 py-12">
+    <main className="relative mx-auto flex min-h-svh w-full max-w-lg flex-col justify-center px-4 py-12">
       <Link
         href="/"
         className="mb-8 flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
@@ -67,6 +68,21 @@ export default async function ClaimPage() {
           <ClaimForm />
         </>
       )}
+
+      <div className="mt-14 flex flex-col items-center gap-3 border-t border-border/50 pt-6 text-center sm:mt-16 sm:flex-row sm:justify-between sm:text-left">
+        <p className="text-xs text-muted-foreground">
+          Sei connesso come{" "}
+          <span className="font-medium text-foreground">{session.email}</span>
+        </p>
+        <form action={signOut}>
+          <button
+            type="submit"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card/70 px-4 py-1.5 text-xs font-semibold text-foreground/80 shadow-sm backdrop-blur transition-colors hover:bg-muted/70 hover:text-foreground"
+          >
+            <LogOut size={13} /> Esci
+          </button>
+        </form>
+      </div>
     </main>
   );
 }

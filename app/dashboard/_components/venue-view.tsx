@@ -1,6 +1,10 @@
+"use client";
+
 import { CheckCircle2 } from "lucide-react";
 
+import { AddressAutocomplete } from "@/components/address-autocomplete";
 import { FilterChip } from "@/components/filter-chip";
+import { HoursEditor } from "@/components/hours-editor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GENRES } from "@/lib/mock-data";
@@ -29,36 +33,31 @@ export function VenueView({ form, saveMessage, onChange, onToggleTag, onSave }: 
           />
         </div>
         <div>
-          <label className="text-xs text-muted-foreground">Città</label>
-          <Input
-            className="mt-1.5"
-            value={form.city}
-            onChange={(e) => onChange({ city: e.target.value })}
-          />
-        </div>
-        <div className="md:col-span-2">
-          <label className="text-xs text-muted-foreground">Indirizzo</label>
-          <Input
-            className="mt-1.5"
-            value={form.address}
-            onChange={(e) => onChange({ address: e.target.value })}
-          />
-        </div>
-        <div>
-          <label className="text-xs text-muted-foreground">Orario</label>
-          <Input
-            className="mt-1.5"
-            value={form.hours}
-            onChange={(e) => onChange({ hours: e.target.value })}
-          />
-        </div>
-        <div>
           <label className="text-xs text-muted-foreground">Numero tavoli totali</label>
           <Input
             type="number"
             className="mt-1.5"
             value={form.totalTables}
             onChange={(e) => onChange({ totalTables: Number(e.target.value) })}
+          />
+        </div>
+        <div className="md:col-span-2">
+          <AddressAutocomplete
+            defaultValue={{
+              address: form.address,
+              city: form.city,
+              lat: form.lat,
+              lng: form.lng,
+            }}
+            onChange={(v) =>
+              onChange({ address: v.address, city: v.city, lat: v.lat, lng: v.lng })
+            }
+          />
+        </div>
+        <div className="md:col-span-2">
+          <HoursEditor
+            defaultValue={form.hours}
+            onChange={(hours) => onChange({ hours })}
           />
         </div>
       </div>
@@ -78,10 +77,15 @@ export function VenueView({ form, saveMessage, onChange, onToggleTag, onSave }: 
       </div>
 
       <div>
-        <label className="text-xs text-muted-foreground">Descrizione</label>
+        <label className="flex items-center justify-between text-xs text-muted-foreground">
+          Descrizione
+          <span className="rounded-full border border-border/70 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70">
+            Facoltativo
+          </span>
+        </label>
         <textarea
           rows={4}
-          className="mt-1.5 w-full rounded-xl border border-input bg-input/30 px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          className="mt-1.5 w-full rounded-xl border border-input bg-input/30 px-3 py-2 text-base text-foreground outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 sm:text-sm"
           value={form.description}
           onChange={(e) => onChange({ description: e.target.value })}
         />

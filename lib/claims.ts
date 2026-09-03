@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
+import { parseHours } from "@/lib/hours";
 import type { VenueClaim } from "@/lib/types";
 
 interface ClaimRow {
@@ -9,7 +10,9 @@ interface ClaimRow {
   name: string;
   city: string;
   address: string;
-  hours: string | null;
+  hours: unknown;
+  lat: number | null;
+  lng: number | null;
   description: string | null;
   status: VenueClaim["status"];
   review_note: string | null;
@@ -31,7 +34,9 @@ function mapClaim(row: ClaimRow): VenueClaim {
     name: row.name,
     city: row.city,
     address: row.address,
-    hours: row.hours,
+    hours: parseHours(row.hours),
+    lat: row.lat ?? null,
+    lng: row.lng ?? null,
     description: row.description,
     status: row.status,
     reviewNote: row.review_note,
@@ -41,7 +46,7 @@ function mapClaim(row: ClaimRow): VenueClaim {
 }
 
 const SELECT =
-  "id, requester_id, name, city, address, hours, description, status, review_note, reviewed_at, created_at, profiles!venue_claims_requester_id_fkey(full_name, email)";
+  "id, requester_id, name, city, address, hours, lat, lng, description, status, review_note, reviewed_at, created_at, profiles!venue_claims_requester_id_fkey(full_name, email)";
 
 export async function listPendingClaims(): Promise<VenueClaim[]> {
   const supabase = await createClient();

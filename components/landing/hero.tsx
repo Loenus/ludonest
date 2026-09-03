@@ -16,8 +16,14 @@ import type { Session } from "@/lib/types";
 
 const PILLARS = ["Prenota un tavolo", "Unisciti agli eventi", "Trova giocatori"];
 
-export function Hero({ session }: { session: Session | null }) {
-  const primaryHref = session ? HOME_PATH[session.role] : "/login";
+export function Hero({
+  session,
+  homeHref,
+}: {
+  session: Session | null;
+  homeHref: string | null;
+}) {
+  const primaryHref = session ? homeHref ?? HOME_PATH[session.role] : "/login";
   const primaryLabel = session ? "Torna alla tua area" : "Entra come giocatore";
 
   return (
@@ -45,7 +51,7 @@ export function Hero({ session }: { session: Session | null }) {
             </span>
           </h1>
 
-          <p className="ff-display mt-4 text-xl font-semibold text-foreground sm:text-2xl">
+          <p className="ff-display mt-4 text-xl font-semibold leading-tight text-foreground sm:text-2xl">
             Trova{" "}
             <span className="word-roll" aria-hidden>
               <span className="bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">

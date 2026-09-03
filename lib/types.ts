@@ -1,5 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 
+import type { WeeklyHours } from "@/lib/hours";
+
 /* ------------------------------------------------------------------ */
 /*  Auth                                                               */
 /* ------------------------------------------------------------------ */
@@ -36,7 +38,11 @@ export interface Venue {
   name: string;
   city: string;
   address: string;
-  hours: string;
+  /** Structured opening hours, or `null` when not set. */
+  hours: WeeklyHours | null;
+  /** Address coordinates from the geocoder (nullable until set). */
+  lat: number | null;
+  lng: number | null;
   totalTables: number;
   tags: string[];
   description: string;
@@ -89,7 +95,9 @@ export interface VenueClaim {
   name: string;
   city: string;
   address: string;
-  hours: string | null;
+  hours: WeeklyHours | null;
+  lat: number | null;
+  lng: number | null;
   description: string | null;
   status: ClaimStatus;
   reviewNote: string | null;
