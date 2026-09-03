@@ -8,4 +8,13 @@
 // `@opennextjs/cloudflare/overrides/incremental-cache/r2-incremental-cache`.
 import { defineCloudflareConfig } from "@opennextjs/cloudflare";
 
-export default defineCloudflareConfig();
+const config = defineCloudflareConfig();
+
+// Minify the bundled server + middleware. Keeps the Worker under Cloudflare's
+// 3 MiB (gzip) free-plan limit.
+(config.default as { minify?: boolean }).minify = true;
+if (config.middleware) {
+  (config.middleware as { minify?: boolean }).minify = true;
+}
+
+export default config;

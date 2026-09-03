@@ -31,7 +31,9 @@ jobs:
       - run: npm ci
 
       - name: Build (OpenNext)
-        run: npx opennextjs-cloudflare build
+        run: |
+          npx opennextjs-cloudflare build
+          node scripts/strip-og-wasm.mjs
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
