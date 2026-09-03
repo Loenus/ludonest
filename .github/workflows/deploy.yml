@@ -53,7 +53,6 @@ jobs:
       - name: Build (OpenNext) and deploy (Wrangler)
         run: |
           npx opennextjs-cloudflare build
-          node scripts/strip-og-wasm.mjs
           npx wrangler deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

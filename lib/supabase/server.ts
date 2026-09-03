@@ -27,8 +27,9 @@ export async function createClient() {
               cookieStore.set(name, value, options);
             }
           } catch {
-            // `setAll` was called from a Server Component: the session refresh
-            // will be handled by `proxy.ts` instead. Safe to ignore.
+            // `setAll` was called from a Server Component, which cannot write
+            // cookies. A refreshed token is persisted on the next Server Action
+            // or Route Handler (e.g. `/auth/callback`). Safe to ignore.
           }
         },
       },

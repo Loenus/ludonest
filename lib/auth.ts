@@ -10,9 +10,10 @@ import type { AppRole, Session } from "@/lib/types";
 /**
  * Data Access Layer.
  *
- * `proxy.ts` runs optimistic redirects, but every authenticated page/action
- * must still call one of these guards — they are the real enforcement point,
- * close to the data. Reads are memoised per request via `cache()`.
+ * There is no proxy/middleware: every authenticated page and action must call
+ * one of these guards — they are the sole enforcement point, close to the data.
+ * `getSession()` also refreshes the Supabase token via `getUser()`. Reads are
+ * memoised per request via `cache()`.
  */
 
 export const getSession = cache(async (): Promise<Session | null> => {
