@@ -56,15 +56,39 @@ export interface Venue {
   distanceKm?: number;
 }
 
-export interface GameEvent {
-  id: number;
-  venueName: string;
+/** Role-playing game / board game / card game. Mirrors the `event_kind` enum. */
+export type EventKind = "gdr" | "tavolo" | "carte";
+
+/** A venue referenced as a partner on an event (resolved from `venues`). */
+export interface PartnerVenue {
+  id: string;
+  name: string;
+  city: string;
+  logoPath: string | null;
+}
+
+/** A venue event as managed from the dashboard. DB-backed (`events` table). */
+export interface ManagerEvent {
+  id: string;
+  venueId: string;
   title: string;
-  date: string;
-  time: string;
-  genre: string;
-  seatsLeft: number;
+  description: string;
+  /** ISO timestamp — start date + time. */
+  startsAt: string;
+  kind: EventKind;
+  /** Minimum consumption in euro, or `null` when none is required. */
+  minConsumption: number | null;
+  /** Open to every skill level (experienced, beginners, first-timers). */
+  openToAll: boolean;
+  seatsLimited: boolean;
   seatsTotal: number;
+  /** Confirmed participants (denormalised `events.seats_taken`). */
+  seatsTaken: number;
+  /** Seats still free, or `null` when the event has no seat limit. */
+  seatsLeft: number | null;
+  /** Partner venues that host the event, resolved from `partner_venue_ids`. */
+  partnerVenues: PartnerVenue[];
+  createdAt: string;
 }
 
 export type BookingStatus = "pending" | "accepted" | "declined" | "cancelled";

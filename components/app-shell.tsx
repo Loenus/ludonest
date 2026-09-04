@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { LogOut, UserCircle2 } from "lucide-react";
 
 import { signOut } from "@/app/actions/auth";
@@ -29,7 +30,13 @@ export function AppShell({
       <div className="flex min-h-screen">
         {/* Sidebar desktop */}
         <aside className="hidden border-r border-border/60 bg-card/80 backdrop-blur md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col md:p-6">
-          <BrandLogo />
+          <Link
+            href="/"
+            aria-label="LudoNest — vai alla home"
+            className="w-fit rounded-xl outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          >
+            <BrandLogo />
+          </Link>
 
           <div className="mt-8 flex items-center gap-3 rounded-2xl bg-muted/40 p-3 backdrop-blur">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted">
@@ -73,7 +80,13 @@ export function AppShell({
         <div className="flex flex-1 flex-col md:ml-64">
           {/* Header mobile */}
           <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border/60 bg-background/80 px-4 py-4 backdrop-blur md:hidden">
-            <BrandLogo />
+            <Link
+              href="/"
+              aria-label="LudoNest — vai alla home"
+              className="rounded-xl outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+            >
+              <BrandLogo />
+            </Link>
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-semibold text-amber-500 dark:text-amber-400">
                 {roleLabel}

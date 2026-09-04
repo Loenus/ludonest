@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { getManagedVenue, requireRole } from "@/lib/auth";
 import { getVenueBookingsFromToday } from "@/lib/bookings";
+import { listVenueEvents } from "@/lib/events";
 import { CLAIM_PATH } from "@/lib/session";
 import { mapVenue } from "@/lib/venues";
 
@@ -19,13 +20,17 @@ export default async function DashboardPage() {
   if (!venueRow) redirect(CLAIM_PATH);
   const venue = mapVenue(venueRow);
 
-  const bookings = await getVenueBookingsFromToday(venue.id);
+  const [bookings, events] = await Promise.all([
+    getVenueBookingsFromToday(venue.id),
+    listVenueEvents(venue.id),
+  ]);
 
   return (
     <ManagerExperience
       userName={session.fullName}
       venue={venue}
       bookings={bookings}
+      events={events}
     />
   );
 }

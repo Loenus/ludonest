@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
-
 import { AppShell } from "@/components/app-shell";
 import { ADMIN_NAV } from "@/lib/nav";
+import { useAppTab } from "@/lib/use-app-tab";
 import type { VenueClaim } from "@/lib/types";
 
 import { ClaimsView } from "./_components/claims-view";
+
+const TAB_IDS = ADMIN_NAV.map((n) => n.id);
 
 interface AdminVenue {
   id: string;
@@ -23,7 +24,7 @@ interface AdminExperienceProps {
 }
 
 export function AdminExperience({ userName, pendingClaims, venues }: AdminExperienceProps) {
-  const [tab, setTab] = useState("richieste");
+  const [tab, setTab] = useAppTab(TAB_IDS, "richieste");
 
   return (
     <AppShell

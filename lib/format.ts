@@ -91,6 +91,11 @@ export function toRomeISO(date: string, time: string): string {
   return `${date}T${time.length === 5 ? `${time}:00` : time}${romeOffset(date)}`;
 }
 
+/** True once an ISO instant is in the past. */
+export function hasStarted(iso: string): boolean {
+  return new Date(iso).getTime() < Date.now();
+}
+
 /** The instant of 00:00 today, Europe/Rome, as an ISO string. */
 export function todayStartRomeISO(): string {
   const key = dayKey(new Date().toISOString());

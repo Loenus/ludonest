@@ -3,6 +3,7 @@ import { MapPin, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { MockupNotice } from "@/components/mockup-notice";
 import { MATCH_POSTS } from "@/lib/mock-data";
 
 export function CommunityView() {
@@ -19,9 +20,11 @@ export function CommunityView() {
           <Sparkles size={12} /> In arrivo
         </Badge>
       </div>
-      <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">
-        Presto potrai trovare altri giocatori. Preview:
-      </p>
+      <MockupNotice>
+        Anteprima non interagibile: i tavoli qui sotto sono di esempio, non
+        richieste reali di altri giocatori. Presto potrai davvero trovare
+        compagni di gioco per completare un tavolo.
+      </MockupNotice>
       <div className="flex w-full flex-col gap-2.5 sm:gap-3.5">
         {MATCH_POSTS.map((p) => (
           <Card
@@ -58,8 +61,11 @@ export function CommunityView() {
           <p className="flex-1 text-xs font-medium text-foreground sm:text-sm">
             Vuoi essere avvisato?
           </p>
-          <Button className="w-full shrink-0 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-xs font-semibold text-slate-950 shadow-lg shadow-amber-400/30 transition-all hover:shadow-xl sm:w-auto sm:text-sm">
-            Avvisami
+          <Button
+            disabled
+            className="w-full shrink-0 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-xs font-semibold text-slate-950 shadow-lg shadow-amber-400/30 sm:w-auto sm:text-sm"
+          >
+            Avvisami — presto
           </Button>
         </div>
       </Card>

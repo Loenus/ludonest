@@ -1,71 +1,38 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import { AppShell } from "@/components/app-shell";
-import { GENRES } from "@/lib/mock-data";
 import { MANAGER_NAV } from "@/lib/nav";
-import type { Booking, GameEvent, Venue } from "@/lib/types";
+import { useAppTab } from "@/lib/use-app-tab";
+import type { Booking, ManagerEvent, Venue } from "@/lib/types";
 
-import { EventsView, type NewEventDraft } from "./_components/events-view";
+const TAB_IDS = MANAGER_NAV.map((n) => n.id);
+
+import { EventsView } from "./_components/events-view";
 import { OverviewView } from "./_components/overview-view";
 import { RequestsView } from "./_components/requests-view";
 import { VenueView } from "./_components/venue-view";
-
-const EMPTY_DRAFT: NewEventDraft = {
-  title: "",
-  date: "",
-  time: "",
-  genre: GENRES[0],
-  seatsTotal: 8,
-};
 
 interface ManagerExperienceProps {
   userName: string;
   venue: Venue;
   bookings: Booking[];
+  events: ManagerEvent[];
 }
 
-export function ManagerExperience({ userName, venue, bookings }: ManagerExperienceProps) {
-  const [tab, setTab] = useState("dashboard");
-
-  // Events are still local-only in Stage 1 (persistence is Stage 2).
-  const [events, setEvents] = useState<GameEvent[]>([]);
-  const [showEventForm, setShowEventForm] = useState(false);
-  const [draft, setDraft] = useState<NewEventDraft>(EMPTY_DRAFT);
+export function ManagerExperience({
+  userName,
+  venue,
+  bookings,
+  events,
+}: ManagerExperienceProps) {
+  const [tab, setTab] = useAppTab(TAB_IDS, "dashboard");
 
   const pendingCount = useMemo(
     () => bookings.filter((b) => b.status === "pending").length,
     [bookings],
   );
-
-  function patchDraft(patch: Partial<NewEventDraft>) {
-    setDraft((prev) => ({ ...prev, ...patch }));
-  }
-
-  function addEvent() {
-    if (!draft.title || !draft.date || !draft.time) return;
-    const seats = Number(draft.seatsTotal);
-    setEvents((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        venueName: venue.name,
-        title: draft.title,
-        date: draft.date,
-        time: draft.time,
-        genre: draft.genre,
-        seatsTotal: seats,
-        seatsLeft: seats,
-      },
-    ]);
-    setDraft(EMPTY_DRAFT);
-    setShowEventForm(false);
-  }
-
-  function deleteEvent(id: number) {
-    setEvents((prev) => prev.filter((e) => e.id !== id));
-  }
 
   return (
     <AppShell
@@ -84,17 +51,7 @@ export function ManagerExperience({ userName, venue, bookings }: ManagerExperien
         />
       )}
       {tab === "locale" && <VenueView venue={venue} />}
-      {tab === "eventi" && (
-        <EventsView
-          events={events}
-          showForm={showEventForm}
-          draft={draft}
-          onToggleForm={() => setShowEventForm((v) => !v)}
-          onDraftChange={patchDraft}
-          onAdd={addEvent}
-          onDelete={deleteEvent}
-        />
-      )}
+      {tab === "eventi" && <EventsView events={events} />}
       {tab === "prenotazioni" && <RequestsView bookings={bookings} />}
     </AppShell>
   );

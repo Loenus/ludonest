@@ -1,6 +1,6 @@
 import {
-  Building2, CalendarDays, ClipboardList, LayoutDashboard, Search, ShieldCheck,
-  Store, UserCircle2, Users,
+  Building2, CalendarDays, ClipboardList, LayoutDashboard, MessageCircle, Search,
+  ShieldCheck, Store, UserCircle2, Users,
 } from "lucide-react";
 
 import type { NavItem } from "@/lib/types";
@@ -9,6 +9,7 @@ export const PLAYER_NAV: NavItem[] = [
   { id: "cerca", label: "Cerca", icon: Search },
   { id: "eventi", label: "Eventi", icon: CalendarDays },
   { id: "community", label: "Community", icon: Users },
+  { id: "chat", label: "Chat", icon: MessageCircle },
   { id: "profilo", label: "Profilo", icon: UserCircle2 },
 ];
 

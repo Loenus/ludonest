@@ -112,6 +112,20 @@ export function Hero({
             )}
           </div>
 
+          <Link
+            href="/eventi"
+            className="group mt-4 inline-flex items-center gap-2.5 text-sm font-semibold text-foreground/80 transition-colors hover:text-foreground"
+          >
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400/15 text-amber-600 transition-transform group-hover:scale-105 dark:text-amber-300">
+              <CalendarDays size={16} />
+            </span>
+            Scopri gli eventi disponibili
+            <ArrowRight
+              size={15}
+              className="transition-transform group-hover:translate-x-0.5"
+            />
+          </Link>
+
           <p className="mt-4 text-[11px] text-muted-foreground">
             Gratis per i giocatori. Nessuna carta richiesta.
           </p>
