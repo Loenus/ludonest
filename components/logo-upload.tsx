@@ -3,40 +3,13 @@
 import { useRef, useState } from "react";
 import { ImagePlus, Loader2, X } from "lucide-react";
 
+import { cropToSquareWebp, MAX_IMAGE_INPUT_BYTES } from "@/lib/image";
 import { createClient } from "@/lib/supabase/client";
 import { VENUE_LOGO_BUCKET, venueLogoUrl } from "@/lib/storage";
 import { GeneratedVenueAvatar } from "@/lib/venue-avatar";
 
 /** Output edge in px. 400 keeps a logo at ~10-25 KB as webp. */
 const OUT = 400;
-const MAX_INPUT_BYTES = 8 * 1024 * 1024;
-
-/** Center-crop to a square and downscale to OUT×OUT, encoded as webp (jpeg fallback). */
-async function toSquare(file: File): Promise<{ blob: Blob; ext: string; type: string }> {
-  const bmp = await createImageBitmap(file);
-  const side = Math.min(bmp.width, bmp.height);
-  const sx = (bmp.width - side) / 2;
-  const sy = (bmp.height - side) / 2;
-
-  const canvas = document.createElement("canvas");
-  canvas.width = OUT;
-  canvas.height = OUT;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("no-2d-context");
-  ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(bmp, sx, sy, side, side, 0, 0, OUT, OUT);
-  bmp.close?.();
-
-  const encode = (type: string) =>
-    new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, 0.85));
-
-  const webp = await encode("image/webp");
-  if (webp && webp.type === "image/webp") return { blob: webp, ext: "webp", type: "image/webp" };
-
-  const jpeg = await encode("image/jpeg");
-  if (jpeg) return { blob: jpeg, ext: "jpg", type: "image/jpeg" };
-  throw new Error("encode-failed");
-}
 
 interface LogoUploadProps {
   /** Hidden field name submitted with the surrounding form. */
@@ -78,7 +51,7 @@ export function LogoUpload({
       setError("Formato non supportato. Usa PNG, JPG o WebP.");
       return;
     }
-    if (file.size > MAX_INPUT_BYTES) {
+    if (file.size > MAX_IMAGE_INPUT_BYTES) {
       setError("Immagine troppo grande (max 8 MB).");
       return;
     }
@@ -91,7 +64,7 @@ export function LogoUpload({
       } = await supabase.auth.getUser();
       if (!user) throw new Error("no-session");
 
-      const { blob, ext, type } = await toSquare(file);
+      const { blob, ext, type } = await cropToSquareWebp(file, OUT);
       const objectPath = `${user.id}/${crypto.randomUUID()}.${ext}`;
       const { error: upErr } = await supabase.storage
         .from(VENUE_LOGO_BUCKET)

@@ -17,13 +17,6 @@ export function formatEventDate(dateStr: string): EventDateParts {
   };
 }
 
-/** Stable 0..n-1 index from an arbitrary id string (for decorative colours). */
-export function hashIndex(id: string, buckets: number): number {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
-  return Math.abs(h) % buckets;
-}
-
 /* ------------------------------------------------------------------ */
 /*  Booking date helpers (manager dashboard)                           */
 /* ------------------------------------------------------------------ */

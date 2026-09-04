@@ -26,7 +26,7 @@ export const getSession = cache(async (): Promise<Session | null> => {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, full_name")
+    .select("role, full_name, avatar_path")
     .eq("id", user.id)
     .single();
 
@@ -41,6 +41,7 @@ export const getSession = cache(async (): Promise<Session | null> => {
       (user.user_metadata?.full_name as string | undefined) ??
       user.email?.split("@")[0] ??
       "Utente",
+    avatarPath: profile.avatar_path ?? null,
   };
 });
 

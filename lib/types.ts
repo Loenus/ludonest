@@ -13,6 +13,8 @@ export interface Session {
   role: AppRole;
   email: string;
   fullName: string;
+  /** Object path in the `avatars` bucket, or `null` for the generated default. */
+  avatarPath: string | null;
 }
 
 /* ------------------------------------------------------------------ */
@@ -106,6 +108,11 @@ export interface Booking {
   status: BookingStatus;
   decidedAt: string | null;
   createdAt: string;
+}
+
+/** A booking as shown in the player's own profile — same shape, plus the venue name. */
+export interface PlayerBooking extends Omit<Booking, "playerName"> {
+  venueName: string;
 }
 
 export type ClaimStatus = "pending" | "approved" | "rejected";

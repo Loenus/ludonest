@@ -2,7 +2,7 @@ import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
 import { todayStartRomeISO } from "@/lib/format";
-import type { Booking, BookingStatus } from "@/lib/types";
+import type { Booking, BookingStatus, PlayerBooking } from "@/lib/types";
 
 const SELECT =
   "id, venue_id, player_id, starts_at, party_size, note, status, decided_at, created_at, profiles!bookings_player_id_fkey(full_name)";
@@ -72,6 +72,86 @@ export async function getPastVenueBookings(
   if (error || !data) return { bookings: [], nextCursor: null };
 
   const rows = (data as unknown as BookingRow[]).map(mapBooking);
+  const hasMore = rows.length > limit;
+  const page = hasMore ? rows.slice(0, limit) : rows;
+  return {
+    bookings: page,
+    nextCursor: hasMore ? page[page.length - 1].startsAt : null,
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/*  Player profile — the mirror image: one player, every venue         */
+/* ------------------------------------------------------------------ */
+
+const PLAYER_SELECT =
+  "id, venue_id, player_id, starts_at, party_size, note, status, decided_at, created_at, venues!bookings_venue_id_fkey(name)";
+
+interface PlayerBookingRow {
+  id: string;
+  venue_id: string;
+  player_id: string;
+  starts_at: string;
+  party_size: number;
+  note: string | null;
+  status: BookingStatus;
+  decided_at: string | null;
+  created_at: string;
+  venues: { name: string } | { name: string }[] | null;
+}
+
+export function mapPlayerBooking(row: PlayerBookingRow): PlayerBooking {
+  const venue = Array.isArray(row.venues) ? row.venues[0] : row.venues;
+  return {
+    id: row.id,
+    venueId: row.venue_id,
+    venueName: venue?.name?.trim() || "Locale",
+    playerId: row.player_id,
+    startsAt: row.starts_at,
+    partySize: row.party_size,
+    note: row.note,
+    status: row.status,
+    decidedAt: row.decided_at,
+    createdAt: row.created_at,
+  };
+}
+
+/** Today + future bookings for a player, across every venue, any status. */
+export async function getPlayerBookingsFromToday(playerId: string): Promise<PlayerBooking[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("bookings")
+    .select(PLAYER_SELECT)
+    .eq("player_id", playerId)
+    .gte("starts_at", todayStartRomeISO())
+    .order("starts_at", { ascending: true });
+
+  if (error || !data) return [];
+  return (data as unknown as PlayerBookingRow[]).map(mapPlayerBooking);
+}
+
+export interface PastPlayerPage {
+  bookings: PlayerBooking[];
+  nextCursor: string | null;
+}
+
+/** Paginated archive: a player's own bookings before today, most recent first. */
+export async function getPastPlayerBookings(
+  playerId: string,
+  cursor?: string,
+  limit = 20,
+): Promise<PastPlayerPage> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("bookings")
+    .select(PLAYER_SELECT)
+    .eq("player_id", playerId)
+    .lt("starts_at", cursor ?? todayStartRomeISO())
+    .order("starts_at", { ascending: false })
+    .limit(limit + 1);
+  if (error || !data) return { bookings: [], nextCursor: null };
+
+  const rows = (data as unknown as PlayerBookingRow[]).map(mapPlayerBooking);
   const hasMore = rows.length > limit;
   const page = hasMore ? rows.slice(0, limit) : rows;
   return {

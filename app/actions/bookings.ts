@@ -4,7 +4,12 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { getManagedVenue, requireRole } from "@/lib/auth";
-import { getPastVenueBookings, type PastPage } from "@/lib/bookings";
+import {
+  getPastPlayerBookings,
+  getPastVenueBookings,
+  type PastPage,
+  type PastPlayerPage,
+} from "@/lib/bookings";
 import { toRomeISO } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import type { BookingStatus } from "@/lib/types";
@@ -54,6 +59,7 @@ export async function requestBooking(
   });
 
   if (error) return { error: "Invio della richiesta non riuscito. Riprova." };
+  revalidatePath("/app");
   return { ok: true };
 }
 
@@ -88,4 +94,10 @@ export async function loadPastBookings(cursor?: string): Promise<PastPage> {
   const venue = await getManagedVenue();
   if (!venue) return { bookings: [], nextCursor: null };
   return getPastVenueBookings(venue.id, cursor);
+}
+
+/** Archive pager for the player's own profile. */
+export async function loadPastPlayerBookings(cursor?: string): Promise<PastPlayerPage> {
+  const session = await requireRole("player");
+  return getPastPlayerBookings(session.userId, cursor);
 }

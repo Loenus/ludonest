@@ -6,8 +6,9 @@ import { AppShell } from "@/components/app-shell";
 import { VenueDetailModal } from "@/components/venue-detail-modal";
 import type { PublicEvent } from "@/lib/events";
 import { PLAYER_NAV } from "@/lib/nav";
-import type { Venue } from "@/lib/types";
+import type { PlayerBooking, Venue } from "@/lib/types";
 import { useAppTab } from "@/lib/use-app-tab";
+import { assignSpineColors, DEFAULT_SPINE_COLOR } from "@/lib/venue-colors";
 
 import { ChatView } from "./_components/chat-view";
 import { CommunityView } from "./_components/community-view";
@@ -18,13 +19,21 @@ import { SearchView } from "./_components/search-view";
 const TAB_IDS = PLAYER_NAV.map((n) => n.id);
 
 export function PlayerExperience({
+  userId,
   userName,
+  email,
+  avatarPath,
   venues,
   events,
+  upcomingBookings,
 }: {
+  userId: string;
   userName: string;
+  email: string;
+  avatarPath: string | null;
   venues: Venue[];
   events: PublicEvent[];
+  upcomingBookings: PlayerBooking[];
 }) {
   const [tab, setTab] = useAppTab(TAB_IDS, "cerca");
 
@@ -34,6 +43,10 @@ export function PlayerExperience({
 
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [bookedVenueIds, setBookedVenueIds] = useState<string[]>([]);
+
+  // Computed once from the full list (not the filtered one) so a venue's
+  // colour never shifts as the player types a search or toggles a filter.
+  const spineColors = useMemo(() => assignSpineColors(venues), [venues]);
 
   const filteredVenues = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -86,6 +99,7 @@ export function PlayerExperience({
       {tab === "cerca" && (
         <SearchView
           venues={filteredVenues}
+          spineColors={spineColors}
           filters={{ search, onlyOpen, genres }}
           onSearchChange={setSearch}
           onToggleOpen={() => setOnlyOpen((v) => !v)}
@@ -98,11 +112,18 @@ export function PlayerExperience({
       {tab === "community" && <CommunityView />}
       {tab === "chat" && <ChatView />}
       {tab === "profilo" && (
-        <ProfileView userName={userName} bookedCount={bookedVenueIds.length} />
+        <ProfileView
+          userId={userId}
+          fullName={userName}
+          email={email}
+          avatarPath={avatarPath}
+          upcomingBookings={upcomingBookings}
+        />
       )}
 
       <VenueDetailModal
         venue={selectedVenue}
+        spine={selectedVenue ? spineColors.get(selectedVenue.id) ?? DEFAULT_SPINE_COLOR : DEFAULT_SPINE_COLOR}
         booked={selectedVenue ? bookedVenueIds.includes(selectedVenue.id) : false}
         onClose={closeVenue}
         onBooked={handleBooked}

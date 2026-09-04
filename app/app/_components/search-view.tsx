@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GENRES } from "@/lib/mock-data";
 import type { Venue } from "@/lib/types";
+import { DEFAULT_SPINE_COLOR } from "@/lib/venue-colors";
 
 export interface VenueFilters {
   search: string;
@@ -15,6 +16,7 @@ export interface VenueFilters {
 
 interface SearchViewProps {
   venues: Venue[];
+  spineColors: Map<string, string>;
   filters: VenueFilters;
   onSearchChange: (value: string) => void;
   onToggleOpen: () => void;
@@ -25,6 +27,7 @@ interface SearchViewProps {
 
 export function SearchView({
   venues,
+  spineColors,
   filters,
   onSearchChange,
   onToggleOpen,
@@ -71,7 +74,12 @@ export function SearchView({
       {venues.length > 0 ? (
         <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
           {venues.map((v) => (
-            <VenueCard key={v.id} venue={v} onOpen={onOpenVenue} />
+            <VenueCard
+              key={v.id}
+              venue={v}
+              spine={spineColors.get(v.id) ?? DEFAULT_SPINE_COLOR}
+              onOpen={onOpenVenue}
+            />
           ))}
         </div>
       ) : (

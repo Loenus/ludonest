@@ -33,6 +33,19 @@ const PALETTES: readonly [string, string][] = [
 const MOTIFS = ["meeple", "hex", "die", "pawn", "cards"] as const;
 type Motif = (typeof MOTIFS)[number];
 
+/** The palette's primary tones, in order — for anything that needs the flat list. */
+export const PALETTE_COLORS: readonly string[] = PALETTES.map(([c1]) => c1);
+
+/** Which palette entry a seed (venue id) lands on — same hash the avatar uses. */
+export function paletteIndexFor(seed: string): number {
+  return hash(seed || "ludonest") % PALETTES.length;
+}
+
+/** The colour a venue's *generated* avatar renders in, without drawing the SVG. */
+export function venuePaletteColor(seed: string): string {
+  return PALETTE_COLORS[paletteIndexFor(seed)];
+}
+
 function Glyph({ kind, detail }: { kind: Motif; detail: string }): ReactNode {
   switch (kind) {
     case "meeple":

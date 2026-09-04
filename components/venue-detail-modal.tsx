@@ -4,42 +4,54 @@ import { useActionState, useEffect } from "react";
 import { CheckCircle2, Clock, MapPin, Sparkles, X } from "lucide-react";
 
 import { requestBooking, type BookingFormState } from "@/app/actions/bookings";
-import { RatingBadge } from "@/components/rating-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { hashIndex } from "@/lib/format";
 import { formatHoursLines, formatHoursShort } from "@/lib/hours";
-import { MATCH_POSTS, SPINE_COLORS } from "@/lib/mock-data";
+import { MATCH_POSTS } from "@/lib/mock-data";
 import type { Venue } from "@/lib/types";
 import { VenueAvatar } from "@/lib/venue-avatar";
 
 interface VenueDetailModalProps {
   venue: Venue | null;
+  spine: string;
   booked: boolean;
   onClose: () => void;
   onBooked: (venueId: string) => void;
 }
 
-export function VenueDetailModal({ venue, booked, onClose, onBooked }: VenueDetailModalProps) {
+export function VenueDetailModal({
+  venue,
+  spine,
+  booked,
+  onClose,
+  onBooked,
+}: VenueDetailModalProps) {
   if (!venue) return null;
   return (
-    <ModalBody venue={venue} booked={booked} onClose={onClose} onBooked={onBooked} />
+    <ModalBody
+      venue={venue}
+      spine={spine}
+      booked={booked}
+      onClose={onClose}
+      onBooked={onBooked}
+    />
   );
 }
 
 function ModalBody({
   venue,
+  spine,
   booked,
   onClose,
   onBooked,
 }: {
   venue: Venue;
+  spine: string;
   booked: boolean;
   onClose: () => void;
   onBooked: (venueId: string) => void;
 }) {
-  const spine = SPINE_COLORS[hashIndex(venue.id, SPINE_COLORS.length)];
   const venuePosts = MATCH_POSTS.filter((p) => p.venueName === venue.name);
   const hoursSummary = formatHoursShort(venue.hours);
   const hoursLines = formatHoursLines(venue.hours);
@@ -61,7 +73,7 @@ function ModalBody({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="max-h-[92vh] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-[28px] border border-border/60 bg-card/95 shadow-[0_30px_80px_rgba(50,32,16,0.24)] ring-1 ring-border/40 transition-all duration-300 ease-out sm:w-[min(92vw,32rem)] md:max-w-xl"
+        className="max-h-[92vh] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-[28px] border border-border/60 bg-card shadow-[0_30px_80px_rgba(50,32,16,0.24)] ring-1 ring-border/40 transition-all duration-300 ease-out sm:w-[min(92vw,32rem)] md:max-w-xl"
       >
         <div
           className="h-3 bg-gradient-to-r"
@@ -89,7 +101,6 @@ function ModalBody({
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-4">
-            <RatingBadge rating={venue.rating} />
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Clock size={13} /> {hoursSummary || "Orari non disponibili"}
             </span>
