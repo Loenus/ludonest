@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { CalendarClock, History, MapPin, Users } from "lucide-react";
 
-import { loadPastPlayerBookings } from "@/app/actions/bookings";
+import { cancelBooking, loadPastPlayerBookings } from "@/app/actions/bookings";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -22,7 +22,15 @@ function StatusBadge({ status }: { status: BookingStatus }) {
   );
 }
 
-function BookingRow({ b }: { b: PlayerBooking }) {
+function BookingRow({
+  b,
+  busy,
+  onCancel,
+}: {
+  b: PlayerBooking;
+  busy: boolean;
+  onCancel: (id: string) => void;
+}) {
   return (
     <Card className="flex flex-wrap items-center justify-between gap-3 border-border/70 bg-card p-3.5">
       <div className="min-w-0">
@@ -38,12 +46,39 @@ function BookingRow({ b }: { b: PlayerBooking }) {
         </p>
         {b.note && <p className="mt-1 max-w-md text-xs text-muted-foreground">“{b.note}”</p>}
       </div>
-      <StatusBadge status={b.status} />
+      <div className="flex shrink-0 flex-col items-end gap-1.5">
+        <StatusBadge status={b.status} />
+        {b.status === "pending" && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => onCancel(b.id)}
+            className="text-[11px] font-medium text-muted-foreground transition-colors hover:text-rose-500 disabled:opacity-50"
+          >
+            {busy ? "Annullamento…" : "Annulla"}
+          </button>
+        )}
+      </div>
     </Card>
   );
 }
 
 export function ProfileBookings({ upcoming }: { upcoming: PlayerBooking[] }) {
+  const [pendingId, setPendingId] = useState<string | null>(null);
+  const [, startTransition] = useTransition();
+
+  function cancel(id: string) {
+    if (!confirm("Annullare questa prenotazione?")) return;
+    setPendingId(id);
+    startTransition(async () => {
+      try {
+        await cancelBooking(id);
+      } finally {
+        setPendingId(null);
+      }
+    });
+  }
+
   const sorted = [...upcoming].sort((a, b) => a.startsAt.localeCompare(b.startsAt));
   const pendingCount = upcoming.filter((b) => b.status === "pending").length;
   const confirmedCount = upcoming.filter((b) => b.status === "accepted").length;
@@ -61,16 +96,24 @@ export function ProfileBookings({ upcoming }: { upcoming: PlayerBooking[] }) {
         {sorted.length === 0 ? (
           <EmptyLine>Nessuna prenotazione in programma.</EmptyLine>
         ) : (
-          sorted.map((b) => <BookingRow key={b.id} b={b} />)
+          sorted.map((b) => (
+            <BookingRow key={b.id} b={b} busy={pendingId === b.id} onCancel={cancel} />
+          ))
         )}
       </div>
 
-      <ArchivePanel />
+      <ArchivePanel pendingId={pendingId} onCancel={cancel} />
     </section>
   );
 }
 
-function ArchivePanel() {
+function ArchivePanel({
+  pendingId,
+  onCancel,
+}: {
+  pendingId: string | null;
+  onCancel: (id: string) => void;
+}) {
   const [open, setOpen] = useState(false);
   const [rows, setRows] = useState<PlayerBooking[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -126,7 +169,7 @@ function ArchivePanel() {
           )}
 
           {rows.map((b) => (
-            <BookingRow key={b.id} b={b} />
+            <BookingRow key={b.id} b={b} busy={pendingId === b.id} onCancel={onCancel} />
           ))}
 
           {cursor && (

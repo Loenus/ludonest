@@ -10,7 +10,7 @@ import {
   type PastPage,
   type PastPlayerPage,
 } from "@/lib/bookings";
-import { toRomeISO } from "@/lib/format";
+import { dayKey, toRomeISO } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import type { BookingStatus } from "@/lib/types";
 
@@ -18,6 +18,9 @@ export interface BookingFormState {
   error?: string;
   ok?: boolean;
 }
+
+const ONE_PER_DAY_MESSAGE =
+  "Hai già una prenotazione per questo giorno. Puoi averne una sola al giorno, in qualsiasi locale.";
 
 const requestSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { error: "Data non valida." }),
@@ -50,6 +53,18 @@ export async function requestBooking(
   }
 
   const supabase = await createClient();
+
+  // One table a day, whichever venue or time — any other still-active
+  // booking (pending or accepted) on the same calendar day blocks a new one.
+  const { data: active } = await supabase
+    .from("bookings")
+    .select("starts_at")
+    .eq("player_id", session.userId)
+    .in("status", ["pending", "accepted"]);
+  if ((active ?? []).some((b) => dayKey(b.starts_at) === parsed.data.date)) {
+    return { error: ONE_PER_DAY_MESSAGE };
+  }
+
   const { error } = await supabase.from("bookings").insert({
     venue_id: venueId,
     player_id: session.userId,
@@ -58,7 +73,13 @@ export async function requestBooking(
     note: parsed.data.note ?? null,
   });
 
-  if (error) return { error: "Invio della richiesta non riuscito. Riprova." };
+  if (error) {
+    // 23505 = unique_violation — the DB-level guard against a race between
+    // two near-simultaneous requests for the same day.
+    if (error.code === "23505") return { error: ONE_PER_DAY_MESSAGE };
+    return { error: "Invio della richiesta non riuscito. Riprova." };
+  }
+
   revalidatePath("/app");
   return { ok: true };
 }
@@ -86,6 +107,23 @@ export async function declineBooking(bookingId: string) {
 }
 export async function restoreBooking(bookingId: string) {
   await decide(bookingId, "pending");
+}
+
+/**
+ * The player cancels their own still-pending request — deleted outright, not
+ * soft-marked, so it disappears from their history and frees up the day.
+ */
+export async function cancelBooking(bookingId: string): Promise<void> {
+  const session = await requireRole("player");
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("bookings")
+    .delete()
+    .eq("id", bookingId)
+    .eq("player_id", session.userId)
+    .eq("status", "pending");
+  if (error) throw new Error(error.message);
+  revalidatePath("/app");
 }
 
 /** Archive pager for the manager dashboard. */

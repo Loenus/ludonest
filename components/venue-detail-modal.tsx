@@ -1,14 +1,14 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
-import { CheckCircle2, Clock, MapPin, Sparkles, X } from "lucide-react";
+import { useActionState, useEffect, useState } from "react";
+import { Calendar, CheckCircle2, Clock, MapPin, X } from "lucide-react";
 
 import { requestBooking, type BookingFormState } from "@/app/actions/bookings";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PickerField } from "@/components/ui/picker-field";
 import { formatHoursLines, formatHoursShort } from "@/lib/hours";
-import { MATCH_POSTS } from "@/lib/mock-data";
 import type { Venue } from "@/lib/types";
 import { VenueAvatar } from "@/lib/venue-avatar";
 
@@ -52,9 +52,10 @@ function ModalBody({
   onClose: () => void;
   onBooked: (venueId: string) => void;
 }) {
-  const venuePosts = MATCH_POSTS.filter((p) => p.venueName === venue.name);
   const hoursSummary = formatHoursShort(venue.hours);
   const hoursLines = formatHoursLines(venue.hours);
+
+  const [showForm, setShowForm] = useState(false);
 
   const action = requestBooking.bind(null, venue.id);
   const [state, formAction, pending] = useActionState<BookingFormState, FormData>(action, {});
@@ -148,67 +149,37 @@ function ModalBody({
             ))}
           </div>
 
-          {venue.description && (
-            <p className="mt-4 text-sm leading-relaxed text-foreground">{venue.description}</p>
-          )}
-
-          <div className="mt-6">
-            <div className="mb-2.5 flex items-center gap-2">
-              <h4 className="ff-display text-sm font-semibold text-foreground">
-                Trova compagni di gioco
-              </h4>
-              <Badge
-                variant="outline"
-                className="border-amber-400/40 bg-amber-400/5 text-amber-300"
-              >
-                <Sparkles size={11} /> In arrivo
-              </Badge>
-            </div>
-            {venuePosts.length > 0 ? (
-              <div className="flex flex-col gap-2">
-                {venuePosts.map((p) => (
-                  <div
-                    key={p.id}
-                    className="flex items-center justify-between gap-3 rounded-2xl border border-border/40 bg-card p-2.5 dark:border-border/50 dark:bg-muted/40"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-foreground">
-                        {p.game} · cercano {p.seeking}
-                      </p>
-                      <p className="truncate text-xs text-muted-foreground">{p.note}</p>
-                    </div>
-                    <Button disabled variant="outline" size="sm" className="shrink-0 text-xs opacity-60">
-                      Presto
-                    </Button>
-                  </div>
-                ))}
+          {/* Booking — description and CTA by default; the form takes the
+              description's place once the player asks to book, instead of
+              always showing a form nobody may need. */}
+          {confirmed ? (
+            <p className="mt-4 flex items-center gap-1.5 rounded-2xl bg-emerald-500/10 px-3 py-2.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+              <CheckCircle2 size={14} /> Richiesta inviata. Il locale ti risponderà a breve.
+            </p>
+          ) : showForm ? (
+            <div className="mt-4">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <h4 className="ff-display text-sm font-semibold text-foreground">
+                  Prenota un tavolo
+                </h4>
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Annulla
+                </button>
               </div>
-            ) : (
-              <p className="text-xs text-muted-foreground">
-                Nessuna richiesta di gruppo per questo locale al momento.
-              </p>
-            )}
-          </div>
 
-          <div className="mt-6 border-t border-border pt-5">
-            <h4 className="ff-display mb-3 text-sm font-semibold text-foreground">
-              Prenota un tavolo
-            </h4>
-
-            {confirmed ? (
-              <p className="flex items-center gap-1.5 rounded-2xl bg-emerald-500/10 px-3 py-2.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                <CheckCircle2 size={14} /> Richiesta inviata. Il locale ti risponderà a breve.
-              </p>
-            ) : (
               <form action={formAction} className="flex flex-col gap-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <label className="flex flex-col gap-1">
+                <div className="grid grid-cols-2 gap-3 [&>*]:min-w-0">
+                  <label className="flex min-w-0 flex-col gap-1">
                     <span className="text-[11px] text-muted-foreground">Data</span>
-                    <Input name="date" type="date" required min={today} className="h-10 rounded-xl" />
+                    <PickerField icon={Calendar} name="date" type="date" required min={today} />
                   </label>
-                  <label className="flex flex-col gap-1">
+                  <label className="flex min-w-0 flex-col gap-1">
                     <span className="text-[11px] text-muted-foreground">Ora</span>
-                    <Input name="time" type="time" required className="h-10 rounded-xl" />
+                    <PickerField icon={Clock} name="time" type="time" required />
                   </label>
                 </div>
                 <label className="flex flex-col gap-1">
@@ -241,13 +212,27 @@ function ModalBody({
                 <Button
                   type="submit"
                   disabled={pending}
-                  className="h-11 rounded-2xl border border-[#dca96d] bg-[linear-gradient(135deg,#f8d58c_0%,#f0b55a_35%,#df9146_100%)] font-semibold text-[#2d1c12] shadow-[0_16px_28px_rgba(184,117,38,0.22)] transition-all duration-200 hover:-translate-y-0.5 disabled:opacity-70 dark:border-amber-500/40 dark:bg-gradient-to-r dark:from-amber-600 dark:to-amber-700 dark:text-white"
+                  className="h-11 rounded-2xl bg-amber-400 font-semibold text-slate-950 transition-all duration-200 hover:-translate-y-0.5 hover:bg-amber-300 disabled:opacity-70"
                 >
                   {pending ? "Invio…" : "Invia richiesta"}
                 </Button>
               </form>
-            )}
-          </div>
+            </div>
+          ) : (
+            <>
+              {venue.description && (
+                <p className="mt-4 text-sm leading-relaxed text-foreground">
+                  {venue.description}
+                </p>
+              )}
+              <Button
+                onClick={() => setShowForm(true)}
+                className="mt-4 h-11 w-full rounded-2xl border border-[#dca96d] bg-[linear-gradient(135deg,#f8d58c_0%,#f0b55a_35%,#df9146_100%)] font-semibold text-[#2d1c12] shadow-[0_16px_28px_rgba(184,117,38,0.22)] transition-all duration-200 hover:-translate-y-0.5 dark:border-amber-500/40 dark:bg-gradient-to-r dark:from-amber-600 dark:to-amber-700 dark:text-white"
+              >
+                <Calendar size={16} /> Prenota un tavolo
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </div>

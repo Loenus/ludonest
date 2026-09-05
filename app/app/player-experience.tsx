@@ -8,6 +8,7 @@ import type { PublicEvent } from "@/lib/events";
 import { PLAYER_NAV } from "@/lib/nav";
 import type { PlayerBooking, Venue } from "@/lib/types";
 import { useAppTab } from "@/lib/use-app-tab";
+import { useScrollLock } from "@/lib/use-scroll-lock";
 import { assignSpineColors, DEFAULT_SPINE_COLOR } from "@/lib/venue-colors";
 
 import { ChatView } from "./_components/chat-view";
@@ -43,6 +44,7 @@ export function PlayerExperience({
 
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [bookedVenueIds, setBookedVenueIds] = useState<string[]>([]);
+  useScrollLock(selectedVenue !== null);
 
   // Computed once from the full list (not the filtered one) so a venue's
   // colour never shifts as the player types a search or toggles a filter.
@@ -76,12 +78,10 @@ export function PlayerExperience({
 
   function openVenue(venue: Venue) {
     setSelectedVenue(venue);
-    document.body.style.overflow = "hidden";
   }
 
   function closeVenue() {
     setSelectedVenue(null);
-    document.body.style.overflow = "";
   }
 
   function handleBooked(venueId: string) {

@@ -1,10 +1,11 @@
 Roadmap
 
-[ ] ideazione database
-[ ] connessione a Supabase/Firebase
+[X] ideazione database
+[X] connessione a Supabase/Firebase
 [X] refactoring codice
-[ ] login
-
+[X] login
+[ ] Sistemare le prenotazioni... sia lato getore sia lato gamer.
+[ ] "Trova il tuo tavolo" con la mappa
 
 
 sono tutti utenti.
