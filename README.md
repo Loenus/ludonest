@@ -6,6 +6,8 @@ Roadmap
 [X] login
 [ ] Sistemare le prenotazioni... sia lato getore sia lato gamer.
 [ ] "Trova il tuo tavolo" con la mappa
+[ ] Rendere gli eventi graficamente più personali. devono essere come delle pagine di riferimento per l'evento.
+
 
 
 sono tutti utenti.

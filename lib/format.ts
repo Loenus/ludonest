@@ -66,6 +66,17 @@ export function formatBookingWhen(iso: string): string {
   return `${dayLabel(dayKey(iso))} · ${timeLabel(iso)}`;
 }
 
+/** "Sabato 15 luglio · 20:30" in Europe/Rome — for the event page hero. */
+export function formatEventWhenLong(iso: string): string {
+  const date = new Intl.DateTimeFormat("it-IT", {
+    timeZone: TZ,
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(new Date(iso));
+  return `${date.charAt(0).toUpperCase()}${date.slice(1)} · ${timeLabel(iso)}`;
+}
+
 /** Europe/Rome UTC offset ("+02:00" / "+01:00") on a given calendar day. */
 export function romeOffset(dayKeyStr: string): string {
   const parts = new Intl.DateTimeFormat("en-US", {

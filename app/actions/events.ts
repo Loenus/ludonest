@@ -4,8 +4,10 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { getManagedVenue, requireRole, requireUser } from "@/lib/auth";
+import { isHexColor } from "@/lib/event-kind";
 import { mapPartnerVenue, type VenueLiteRow } from "@/lib/events";
 import { toRomeISO } from "@/lib/format";
+import { EVENT_COVER_BUCKET, safeEventCoverPath } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
 import type { PartnerVenue } from "@/lib/types";
 
@@ -95,7 +97,13 @@ async function resolvePartnerVenueIds(
   return ids.filter((id) => valid.has(id));
 }
 
-function toRow(data: EventInput, venueId: string, partnerVenueIds: string[]) {
+interface RowExtras {
+  partnerVenueIds: string[];
+  coverPath: string | null;
+  accentColor: string | null;
+}
+
+function toRow(data: EventInput, venueId: string, extras: RowExtras) {
   return {
     venue_id: venueId,
     title: data.title,
@@ -106,7 +114,18 @@ function toRow(data: EventInput, venueId: string, partnerVenueIds: string[]) {
     open_to_all: data.openToAll,
     seats_limited: data.seatsLimited,
     seats_total: data.seatsLimited ? (data.seatsTotal ?? 0) : 0,
-    partner_venue_ids: partnerVenueIds,
+    partner_venue_ids: extras.partnerVenueIds,
+    cover_path: extras.coverPath,
+    accent_color: extras.accentColor,
+  };
+}
+
+/** Read the manager's personalisation fields from the form. */
+function readPersonalisation(formData: FormData, userId: string) {
+  const rawAccent = formData.get("accentColor");
+  return {
+    coverPath: safeEventCoverPath(formData.get("coverPath"), userId),
+    accentColor: isHexColor(rawAccent) ? rawAccent.toLowerCase() : null,
   };
 }
 
@@ -138,7 +157,7 @@ export async function createEvent(
   _prev: EventFormState,
   formData: FormData,
 ): Promise<EventFormState> {
-  await requireRole("manager");
+  const session = await requireRole("manager");
   const venue = await getManagedVenue();
   if (!venue) return { error: "Nessun locale associato al tuo account." };
 
@@ -149,12 +168,14 @@ export async function createEvent(
 
   const supabase = await createClient();
   const partnerVenueIds = await resolvePartnerVenueIds(supabase, formData, venue.id);
+  const { coverPath, accentColor } = readPersonalisation(formData, session.userId);
   const { error } = await supabase
     .from("events")
-    .insert(toRow(parsed.data, venue.id, partnerVenueIds));
+    .insert(toRow(parsed.data, venue.id, { partnerVenueIds, coverPath, accentColor }));
   if (error) return { error: "Creazione dell'evento non riuscita. Riprova." };
 
   revalidatePath("/dashboard");
+  revalidatePath("/eventi");
   return { ok: true };
 }
 
@@ -167,7 +188,7 @@ export async function updateEvent(
   _prev: EventFormState,
   formData: FormData,
 ): Promise<EventFormState> {
-  await requireRole("manager");
+  const session = await requireRole("manager");
   const venue = await getManagedVenue();
   if (!venue) return { error: "Nessun locale associato al tuo account." };
 
@@ -178,14 +199,31 @@ export async function updateEvent(
 
   const supabase = await createClient();
   const partnerVenueIds = await resolvePartnerVenueIds(supabase, formData, venue.id);
+  const { coverPath, accentColor } = readPersonalisation(formData, session.userId);
+
+  const { data: prev } = await supabase
+    .from("events")
+    .select("cover_path")
+    .eq("id", eventId)
+    .eq("venue_id", venue.id)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("events")
-    .update(toRow(parsed.data, venue.id, partnerVenueIds))
+    .update(toRow(parsed.data, venue.id, { partnerVenueIds, coverPath, accentColor }))
     .eq("id", eventId)
     .eq("venue_id", venue.id);
   if (error) return { error: "Salvataggio non riuscito. Riprova." };
 
+  // Best-effort: drop the previous cover now that it is unreferenced.
+  const oldCover = (prev as { cover_path?: string | null } | null)?.cover_path ?? null;
+  if (oldCover && oldCover !== coverPath) {
+    await supabase.storage.from(EVENT_COVER_BUCKET).remove([oldCover]).catch(() => {});
+  }
+
   revalidatePath("/dashboard");
+  revalidatePath("/eventi");
+  revalidatePath(`/eventi/${eventId}`);
   return { ok: true };
 }
 
@@ -253,6 +291,14 @@ export async function deleteEvent(eventId: string): Promise<void> {
   if (!venue) return;
 
   const supabase = await createClient();
+
+  const { data: prev } = await supabase
+    .from("events")
+    .select("cover_path")
+    .eq("id", eventId)
+    .eq("venue_id", venue.id)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("events")
     .delete()
@@ -260,5 +306,11 @@ export async function deleteEvent(eventId: string): Promise<void> {
     .eq("venue_id", venue.id);
   if (error) throw new Error(error.message);
 
+  const cover = (prev as { cover_path?: string | null } | null)?.cover_path ?? null;
+  if (cover) {
+    await supabase.storage.from(EVENT_COVER_BUCKET).remove([cover]).catch(() => {});
+  }
+
   revalidatePath("/dashboard");
+  revalidatePath("/eventi");
 }

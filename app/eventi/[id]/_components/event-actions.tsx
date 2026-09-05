@@ -8,6 +8,7 @@ import { CalendarCheck, LogIn, Pencil, X } from "lucide-react";
 import { joinEvent, leaveEvent } from "@/app/actions/events";
 import { EventForm } from "@/components/events/event-form";
 import { Button } from "@/components/ui/button";
+import { readableTextOn } from "@/lib/event-kind";
 import type { AppRole, ManagerEvent } from "@/lib/types";
 
 /**
@@ -18,12 +19,14 @@ import type { AppRole, ManagerEvent } from "@/lib/types";
  */
 export function EventActions({
   event,
+  accent,
   role,
   joined,
   canManage,
   isPast,
 }: {
   event: ManagerEvent;
+  accent: string;
   role: AppRole | null;
   joined: boolean;
   canManage: boolean;
@@ -35,6 +38,7 @@ export function EventActions({
   const [editing, setEditing] = useState(false);
 
   const full = event.seatsLimited && (event.seatsLeft ?? 0) <= 0;
+  const accentStyle = { background: accent, color: readableTextOn(accent) };
 
   if (canManage) {
     if (editing) {
@@ -67,7 +71,8 @@ export function EventActions({
     return (
       <Link
         href="/login"
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-amber-400 px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-amber-300"
+        style={accentStyle}
+        className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90"
       >
         <LogIn size={15} /> Accedi per partecipare
       </Link>
@@ -102,6 +107,7 @@ export function EventActions({
       ) : (
         <Button
           disabled={pending || full}
+          style={full ? undefined : accentStyle}
           onClick={() =>
             start(async () => {
               const res = await joinEvent(event.id);
@@ -113,7 +119,11 @@ export function EventActions({
               }
             })
           }
-          className="w-full rounded-xl bg-amber-400 text-slate-950 hover:bg-amber-300 disabled:opacity-60"
+          className={
+            full
+              ? "w-full rounded-xl bg-muted text-muted-foreground"
+              : "w-full rounded-xl transition-opacity hover:opacity-90 disabled:opacity-60"
+          }
         >
           {full ? "Al completo" : pending ? "Iscrizione…" : "Partecipa"}
         </Button>

@@ -8,17 +8,21 @@ import {
   updateEvent,
   type EventFormState,
 } from "@/app/actions/events";
+import { CoverUpload } from "@/components/events/cover-upload";
 import { PartnerVenuePicker } from "@/components/events/partner-venue-picker";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { PickerField } from "@/components/ui/picker-field";
-import { EVENT_KINDS } from "@/lib/event-kind";
+import { DEFAULT_EVENT_ACCENT, EVENT_KINDS } from "@/lib/event-kind";
 import { dayKey, timeLabel } from "@/lib/format";
 import type { ManagerEvent } from "@/lib/types";
 
 const fieldClass =
   "w-full rounded-xl border border-input bg-input/30 px-3 py-2 text-base text-foreground outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 sm:text-sm";
+
+/** Quick-pick accents — the venue palette, so pages stay on-brand for the app. */
+const ACCENT_PRESETS = ["#E8A93B", "#3FB89F", "#E0637A", "#8B7FD6", "#5AA9E6", "#6FBF73"];
 
 /**
  * Create / edit form for a venue event. Used both in the manager dashboard list
@@ -35,13 +39,20 @@ export function EventForm({
   onDone: () => void;
   onCancel: () => void;
 }) {
+  // Snapshot the event at mount: the parent re-renders with fresh data after a
+  // save (revalidatePath) before this form unmounts, and letting the uncontrolled
+  // inputs' `defaultValue` shift under them both wipes edits and trips a Base UI
+  // "changing default value" warning.
+  const [ev] = useState(() => event);
+
   const action =
-    mode === "create" ? createEvent : updateEvent.bind(null, event!.id);
+    mode === "create" ? createEvent : updateEvent.bind(null, ev!.id);
   const [state, formAction, pending] = useActionState<EventFormState, FormData>(
     action,
     {},
   );
-  const [seatsLimited, setSeatsLimited] = useState(event?.seatsLimited ?? false);
+  const [seatsLimited, setSeatsLimited] = useState(ev?.seatsLimited ?? false);
+  const [accent, setAccent] = useState(ev?.accentColor ?? "");
 
   // On a successful save the action returns `{ ok: true }` and `revalidatePath`
   // refreshes the data underneath; hand control back to the caller.
@@ -49,8 +60,8 @@ export function EventForm({
     if (state.ok) onDone();
   }, [state.ok, onDone]);
 
-  const dateValue = event ? dayKey(event.startsAt) : "";
-  const timeValue = event ? timeLabel(event.startsAt) : "20:30";
+  const dateValue = ev ? dayKey(ev.startsAt) : "";
+  const timeValue = ev ? timeLabel(ev.startsAt) : "20:30";
 
   return (
     <form action={formAction}>
@@ -62,7 +73,7 @@ export function EventForm({
             required
             minLength={3}
             maxLength={120}
-            defaultValue={event?.title}
+            defaultValue={ev?.title}
             placeholder="es. Open Day — Serata di gioco di ruolo"
             className="rounded-xl"
           />
@@ -75,7 +86,7 @@ export function EventForm({
             required
             rows={8}
             maxLength={4000}
-            defaultValue={event?.description}
+            defaultValue={ev?.description}
             placeholder="Racconta l'evento: cosa si fa, com'è strutturata la serata, cosa serve portare, a chi è rivolto…"
             className={fieldClass}
           />
@@ -85,7 +96,7 @@ export function EventForm({
           <span className="text-xs text-muted-foreground">Tipo di evento</span>
           <select
             name="kind"
-            defaultValue={event?.kind ?? "tavolo"}
+            defaultValue={ev?.kind ?? "tavolo"}
             className="h-9 w-full rounded-xl border border-input bg-input/30 px-3 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
           >
             {EVENT_KINDS.map((k) => (
@@ -104,7 +115,7 @@ export function EventForm({
             min={0}
             max={999}
             step="0.5"
-            defaultValue={event?.minConsumption ?? ""}
+            defaultValue={ev?.minConsumption ?? ""}
             placeholder="es. 8 — lascia vuoto se non prevista"
             className="rounded-xl"
           />
@@ -136,7 +147,7 @@ export function EventForm({
           <input
             type="checkbox"
             name="openToAll"
-            defaultChecked={event?.openToAll ?? true}
+            defaultChecked={ev?.openToAll ?? true}
             className="size-4 rounded border-input accent-amber-400"
           />
           Aperto a tutti — giocatori esperti, novizi e principianti
@@ -161,7 +172,7 @@ export function EventForm({
               name="seatsTotal"
               min={1}
               max={500}
-              defaultValue={event?.seatsTotal || ""}
+              defaultValue={ev?.seatsTotal || ""}
               placeholder="es. 24"
               className="rounded-xl"
             />
@@ -173,8 +184,60 @@ export function EventForm({
             Locali partner{" "}
             <span className="text-muted-foreground/70">(opzionale)</span>
           </span>
-          <PartnerVenuePicker defaultValue={event?.partnerVenues} />
+          <PartnerVenuePicker defaultValue={ev?.partnerVenues} />
         </div>
+
+        <fieldset className="flex min-w-0 flex-col gap-3 rounded-xl border border-border/60 bg-background/40 p-3 sm:col-span-2">
+          <legend className="px-1 text-xs font-semibold text-foreground">
+            Aspetto della pagina{" "}
+            <span className="font-normal text-muted-foreground/70">(opzionale)</span>
+          </legend>
+
+          <p className="text-[11px] text-muted-foreground">
+            Il colore tinge solo gli elementi della pagina (data, tag, pulsante). Senza
+            copertina non c&apos;è immagine di sfondo.
+          </p>
+
+          <label className="flex flex-col gap-1.5">
+            <span className="text-xs text-muted-foreground">Copertina</span>
+            <CoverUpload defaultPath={ev?.coverPath} />
+          </label>
+
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs text-muted-foreground">Colore d&apos;accento</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                type="color"
+                aria-label="Colore d'accento"
+                value={accent || DEFAULT_EVENT_ACCENT}
+                onChange={(e) => setAccent(e.target.value)}
+                className="h-9 w-12 cursor-pointer rounded-lg border border-input bg-transparent p-0.5"
+              />
+              {ACCENT_PRESETS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  aria-label={`Usa ${c}`}
+                  onClick={() => setAccent(c)}
+                  style={{ background: c }}
+                  className={`h-7 w-7 rounded-full ring-offset-2 ring-offset-background transition-transform hover:scale-110 ${
+                    accent.toLowerCase() === c.toLowerCase() ? "ring-2 ring-foreground" : ""
+                  }`}
+                />
+              ))}
+              {accent && (
+                <button
+                  type="button"
+                  onClick={() => setAccent("")}
+                  className="text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Predefinito
+                </button>
+              )}
+            </div>
+            <input type="hidden" name="accentColor" value={accent} />
+          </div>
+        </fieldset>
 
         {state.error && (
           <p className="text-xs font-medium text-destructive sm:col-span-2">

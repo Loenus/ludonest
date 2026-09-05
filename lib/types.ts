@@ -90,6 +90,10 @@ export interface ManagerEvent {
   seatsLeft: number | null;
   /** Partner venues that host the event, resolved from `partner_venue_ids`. */
   partnerVenues: PartnerVenue[];
+  /** Object path in the `event-covers` bucket, or `null` for the gradient fallback. */
+  coverPath: string | null;
+  /** Hex colour (`#rrggbb`) the manager picked to brand the page, or `null`. */
+  accentColor: string | null;
   createdAt: string;
 }
 

@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { EventKind, ManagerEvent, PartnerVenue, Session } from "@/lib/types";
 
 const EVENT_FIELDS =
-  "id, venue_id, title, description, starts_at, kind, min_consumption, open_to_all, seats_limited, seats_total, seats_taken, partner_venue_ids, created_at";
+  "id, venue_id, title, description, starts_at, kind, min_consumption, open_to_all, seats_limited, seats_total, seats_taken, partner_venue_ids, cover_path, accent_color, created_at";
 
 interface EventRow {
   id: string;
@@ -22,6 +22,8 @@ interface EventRow {
   seats_total: number;
   seats_taken: number;
   partner_venue_ids: string[] | null;
+  cover_path: string | null;
+  accent_color: string | null;
   created_at: string;
 }
 
@@ -47,6 +49,8 @@ export function mapEvent(
     partnerVenues: (row.partner_venue_ids ?? [])
       .map((id) => partners.get(id))
       .filter((v): v is PartnerVenue => Boolean(v)),
+    coverPath: row.cover_path ?? null,
+    accentColor: row.accent_color ?? null,
     createdAt: row.created_at,
   };
 }
@@ -55,6 +59,8 @@ export interface VenueLiteRow {
   id: string;
   name: string;
   city: string;
+  /** Only selected for an event's host venue, not for partner venues. */
+  address?: string | null;
   logo_path: string | null;
 }
 
@@ -110,6 +116,7 @@ export interface EventVenueRef {
   id: string;
   name: string;
   city: string;
+  address: string;
   logoPath: string | null;
 }
 
@@ -121,7 +128,7 @@ interface PublicEventRow extends EventRow {
   venues: VenueLiteRow | VenueLiteRow[] | null;
 }
 
-const PUBLIC_EVENT_FIELDS = `${EVENT_FIELDS}, venues!events_venue_id_fkey(id, name, city, logo_path)`;
+const PUBLIC_EVENT_FIELDS = `${EVENT_FIELDS}, venues!events_venue_id_fkey(id, name, city, address, logo_path)`;
 
 function mapPublicEvent(
   row: PublicEventRow,
@@ -131,7 +138,13 @@ function mapPublicEvent(
   if (!v) return null; // suspended / hidden venue — drop from the public list
   return {
     ...mapEvent(row, partners),
-    venue: { id: v.id, name: v.name, city: v.city, logoPath: v.logo_path ?? null },
+    venue: {
+      id: v.id,
+      name: v.name,
+      city: v.city,
+      address: v.address ?? "",
+      logoPath: v.logo_path ?? null,
+    },
   };
 }
 
