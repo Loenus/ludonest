@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { AppShell } from "@/components/app-shell";
 import { MANAGER_NAV } from "@/lib/nav";
 import { useAppTab } from "@/lib/use-app-tab";
+import { useBookingsRealtime } from "@/lib/use-bookings-realtime";
 import type { Booking, ManagerEvent, Venue } from "@/lib/types";
 
 const TAB_IDS = MANAGER_NAV.map((n) => n.id);
@@ -28,6 +29,9 @@ export function ManagerExperience({
   events,
 }: ManagerExperienceProps) {
   const [tab, setTab] = useAppTab(TAB_IDS, "dashboard");
+
+  // Live updates for this venue's booking requests — no manual reload needed.
+  useBookingsRealtime(venue.id);
 
   const pendingCount = useMemo(
     () => bookings.filter((b) => b.status === "pending").length,
