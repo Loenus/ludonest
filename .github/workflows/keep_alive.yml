@@ -2,8 +2,7 @@ name: Keep Supabase Alive
 
 on:
   schedule:
-    # Run at 00:00 UTC every Sunday and Friday (twice a week) to keep the Supabase database alive.
-    - cron: '0 0 * * 0,5'
+    - cron: "17 8,20 * * *"
   workflow_dispatch:
 
 jobs:
@@ -12,6 +11,12 @@ jobs:
     steps:
       - name: Ping Supabase Database
         run: |
-          curl -X GET "${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}/rest/v1/events?select=id&limit=1" \
+          curl --fail --silent --show-error \
+          --retry 3 \
+          --retry-delay 10 \
+          --retry-connrefused \
+          --connect-timeout 15 \
+          --max-time 30 \
+          -X GET "${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}/rest/v1/events?select=id&limit=1" \
           -H "apikey: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" \
           -H "Authorization: Bearer ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" \
